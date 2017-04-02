@@ -23,37 +23,57 @@ def swapA_D
   $file.syswrite("A=A+D\nD=A-D\nA=A-D\n")
 end
 
+#doing pop into A, doesn't change D
+def popA
+  $file.syswrite "@0\nM=M-1\nA=M\nA=M\n"
+end
+
 def analyzePop(arr)
   case arr[1]
     when 'local'
       index = arr[2]
-      $file.syswrite("@#{index}\nD=A\n@1\nD=M+D\n@0\nM=M-1\nA=M\nA=M\n")
+      $file.syswrite("@#{index}\nD=A\n@1\nD=M+D\n")
+      popA
       swapA_D
       $file.syswrite("M=D\n")
     when 'argument'
       index = arr[2]
-      $file.syswrite("@#{index}\nD=A\n@2\nD=M+D\n@0\nM=M-1\nA=M\nA=M\n")
+      $file.syswrite("@#{index}\nD=A\n@2\nD=M+D\n")
+      popA
       swapA_D
       $file.syswrite("M=D\n")
     when 'this'
       index = arr[2]
-      $file.syswrite("@#{index}\nD=A\n@3\nD=M+D\n@0\nM=M-1\nA=M\nA=M\n")
+      $file.syswrite("@#{index}\nD=A\n@3\nD=M+D\n")
+      popA
       swapA_D
       $file.syswrite("M=D\n")
     when 'that'
       index = arr[2]
-      $file.syswrite("@#{index}\nD=A\n@4\nD=M+D\n@0\nM=M-1\nA=M\nA=M\n")
+      $file.syswrite("@#{index}\nD=A\n@4\nD=M+D\n")
+      popA
       swapA_D
       $file.syswrite("M=D\n")
-
-
     when 'temp'
-
+      index = arr[2]
+      $file.syswrite("@5\nD=A\n@#{index}\nD=D+A\n")
+      popA
+      swapA_D
+      $file.syswrite("M=D\n")
     when 'static'
+      index = arr[2]
+      $file.syswrite("@16\nD=A\n@#{index}\nD=D+A\n")
+      popA
+      swapA_D
+      $file.syswrite("M=D\n")
     when 'constant'
-
+      #this is error can't get here
     when 'pointer'
-
+          index = arr[2]
+          $file.syswrite("@3\nD=A\n@#{index}\nD=D+A\n")
+          popA
+          swapA_D
+          $file.syswrite("M=D\n")
   end
 end
 
