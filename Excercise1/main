@@ -1,0 +1,119 @@
+puts "Enter file's name: "
+Dir.chdir "E:/users/ophir/desktop/"
+file_name = gets.strip
+
+def initialization()
+  $file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
+end
+
+def analyzeLine(line)
+  arr = line.split("\s")
+  if arr[0].eql? "push"
+    analyzePush(arr)
+  elsif arr[0].eql? 'pop'
+    analyzePop(arr)
+  elsif ['add','sub','neg'].include? arr[0]
+    analyzeMath(arr)
+  elsif ['eq','gt','lt'].include? arr[0]
+    analyzeCondition(arr)
+  end
+end
+
+def swapA_D
+  $file.syswrite("A=A+D\nD=A-D\nA=A-D\n")
+end
+
+def analyzePop(arr)
+  case arr[1]
+    when 'local'
+      index = arr[2]
+      $file.syswrite("@#{index}\nD=A\n@1\nD=M+D\n@0\nM=M-1\nA=M\nA=M\n")
+      swapA_D
+      $file.syswrite("M=D\n")
+    when 'argument'
+      index = arr[2]
+      $file.syswrite("@#{index}\nD=A\n@2\nD=M+D\n@0\nM=M-1\nA=M\nA=M\n")
+      swapA_D
+      $file.syswrite("M=D\n")
+    when 'this'
+      index = arr[2]
+      $file.syswrite("@#{index}\nD=A\n@3\nD=M+D\n@0\nM=M-1\nA=M\nA=M\n")
+      swapA_D
+      $file.syswrite("M=D\n")
+    when 'that'
+      index = arr[2]
+      $file.syswrite("@#{index}\nD=A\n@4\nD=M+D\n@0\nM=M-1\nA=M\nA=M\n")
+      swapA_D
+      $file.syswrite("M=D\n")
+
+
+    when 'temp'
+
+    when 'static'
+    when 'constant'
+
+    when 'pointer'
+
+  end
+end
+
+def analyzeCondition(arr)
+  case arr[1]
+    when 'eq'
+      puts "FILL EQ"
+    when 'gt'
+      puts "FILL GT"
+    when 'lt'
+      puts "FILL LT"
+  end
+end
+
+def analyzeMath(arr)
+  case arr[1]
+    when 'add'
+      $file.syswrite("@0\nA=M\nD=M\n@0\nM=M-1\nA=M\nM=M+D\n")
+    when 'sub'
+      $file.syswrite("@0\nA=M\nD=M\n@0\nM=M-1\nA=M\nM=M-D\n")
+    when 'neg'
+      $file.syswrite("AD=0\nA=M\nM=D-M\n")
+  end
+end
+
+def analyzePush(arr)
+  if ['constant','local','argument','this','that','temp'].include? arr[1]
+    #save parameter in D
+    $file.syswrite("@#{arr[2]}\nD=A\n")
+  end
+  case arr[1]
+    when "constant"
+    when "local"
+      $file.syswrite("@1\nA=M\nA=M\nA=A+D\nD=M\n")
+    when "argument"
+      $file.syswrite("@2\nA=M\nA=M\nA=A+D\nD=M\n")
+    when "this"
+      $file.syswrite("@3\nA=M\nA=M\nA=A+D\nD=M\n")
+    when "that"
+      $file.syswrite("@4\nA=M\nA=M\nA=A+D\nD=M\n")
+    when "temp"
+      $file.syswrite("@5\nA=A+D\nD=M\n")
+    when "static"
+      puts "ERROR STATIC #{arr}"
+    when "pointer"
+      if arr[2]==0
+        $file.syswrite("@3\nA=M\nD=M\n")
+      elsif arr[2]==1
+        $file.syswrite("@4\nA=M\nD=M\n")
+      end
+    else puts "ERROR #{arr}"
+  end
+  # push the value save in D to the top of the stack
+  $file.syswrite("@0\nA=M\nM=D\n@0\nM=M+1\n")
+end
+
+if Dir.glob("#{file_name}.vm").length != 0
+  $file = File.new("#{file_name}.asm", 'w')
+  initialization()
+  File.readlines("#{file_name}.vm").each do |line|
+    analyzeLine(line)
+  end
+end
