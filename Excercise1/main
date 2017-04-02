@@ -1,6 +1,7 @@
 puts "Enter file's name: "
 Dir.chdir "E:/users/ophir/desktop/"
 file_name = gets.strip
+$labelNum = '0'
 
 def initialization()
   $file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
@@ -26,6 +27,10 @@ end
 #doing pop into A, doesn't change D
 def popA
   $file.syswrite "@0\nM=M-1\nA=M\nA=M\n"
+end
+
+def popD
+  $file.syswrite "@0\nM=M-1\nA=M\nD=M\n"
 end
 
 def analyzePop(arr)
@@ -80,7 +85,13 @@ end
 def analyzeCondition(arr)
   case arr[1]
     when 'eq'
-      puts "FILL EQ"
+      #didn't finish still in the middle
+      popD
+      popA
+      $file.syswrite "D=D-A\n@TrueLabel#{$labelNum}\nD;JNE\n"
+      pushConstant '-1'
+      $file.syswrite "@0\n"
+
     when 'gt'
       puts "FILL GT"
     when 'lt'
@@ -128,6 +139,11 @@ def analyzePush(arr)
   end
   # push the value save in D to the top of the stack
   $file.syswrite("@0\nA=M\nM=D\n@0\nM=M+1\n")
+end
+
+#changes A and D
+def pushConstant(constant)
+  $file.syswrite "@#{constant}\nD=A\n"
 end
 
 if Dir.glob("#{file_name}.vm").length != 0
