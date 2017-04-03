@@ -17,11 +17,28 @@ def analyzeLine(line)
     analyzeMath(arr)
   elsif ['eq','gt','lt'].include? arr[0]
     analyzeCondition(arr)
+  elsif ['and','or','not'].include? arr[0]
+    analyzeBooleanFunctions(arr)
   end
 end
 
 def swapA_D
   $file.syswrite("A=A+D\nD=A-D\nA=A-D\n")
+end
+
+
+def jumpLabel(labelNum)
+  $file.syswrite("@0\nD=A\n@label#{labelNum}\nD;JEQ\n")
+end
+
+def putLabel(labelNum)
+  $file.syswrite "(label#{labelNum})\n"
+end
+
+
+#changes A and D
+def pushConstant(constant)
+  $file.syswrite "@#{constant}\nD=A\n"
 end
 
 #doing pop into A, doesn't change D
@@ -82,13 +99,6 @@ def analyzePop(arr)
   end
 end
 
-def jumpLabel(labelNum)
-  $file.syswrite("@0\nD=A\n@label#{labelNum}\nD;JEQ\n")
-end
-
-def putLabel(labelNum)
-  $file.syswrite "(label#{labelNum})\n"
-end
 
 def analyzeCondition(arr)
   case arr[1]
@@ -169,9 +179,8 @@ def analyzePush(arr)
   $file.syswrite("@0\nA=M\nM=D\n@0\nM=M+1\n")
 end
 
-#changes A and D
-def pushConstant(constant)
-  $file.syswrite "@#{constant}\nD=A\n"
+def analyzeBooleanFunctions(arr)
+
 end
 
 if Dir.glob("#{file_name}.vm").length != 0
