@@ -1,7 +1,7 @@
 puts "Enter file's name: "
 Dir.chdir "E:/users/ophir/desktop/"
 file_name = gets.strip
-$labelNum = '0'
+$labelNum = 0
 
 def initialization()
   $file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
@@ -82,16 +82,28 @@ def analyzePop(arr)
   end
 end
 
+def jumpLabel(labelNum)
+  $file.syswrite("@0\nD=A\n@label#{labelNum}\nD;JEQ\n")
+end
+
+def putLabel(labelNum)
+  $file.syswrite "(label#{labelNum})\n"
+end
+
 def analyzeCondition(arr)
   case arr[1]
     when 'eq'
-      #didn't finish still in the middle
       popD
       popA
-      $file.syswrite "D=D-A\n@TrueLabel#{$labelNum}\nD;JNE\n"
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JEQ\n"
+      pushConstant '0'
+      jumpLabel $labelNum + 1
+      putLabel $labelNum
       pushConstant '-1'
-      $file.syswrite "@0\n"
-
+      #jumpLabel $labelNum + 2
+      putLabel $labelNum + 1
+      #putLabel $labelNum + 2
+      $labelNum = $labelNum + 2
     when 'gt'
       puts "FILL GT"
     when 'lt'
