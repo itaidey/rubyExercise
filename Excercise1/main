@@ -105,9 +105,25 @@ def analyzeCondition(arr)
       #putLabel $labelNum + 2
       $labelNum = $labelNum + 2
     when 'gt'
-      puts "FILL GT"
+      popD
+      popA
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JGT\n"
+      pushConstant '0'
+      jumpLabel $labelNum + 1
+      putLabel $labelNum
+      pushConstant '-1'
+      putLabel $labelNum + 1
+      $labelNum = $labelNum + 2
     when 'lt'
-      puts "FILL LT"
+      popD
+      popA
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JLT\n"
+      pushConstant '0'
+      jumpLabel $labelNum + 1
+      putLabel $labelNum
+      pushConstant '-1'
+      putLabel $labelNum + 1
+      $labelNum = $labelNum + 2
   end
 end
 
