@@ -1,6 +1,6 @@
 puts "Enter file's name: "
 Dir.chdir "E:/users/ophir/desktop/"
-file_name = gets.strip
+$file_name = gets.strip
 $labelNum = 0
 
 def initialization()
@@ -26,6 +26,18 @@ def swapA_D
   $file.syswrite("A=A+D\nD=A-D\nA=A-D\n")
 end
 
+def SpPlusPlus
+  $file.syswrite "@0\nM=M+1\n"
+end
+
+def SpMinusMinus
+  $file.syswrite "@0\nM=M-1\n"
+end
+
+def pushD
+  $file.syswrite "@0\nA=M\nM=D\n"
+  SpPlusPlus
+end
 
 def jumpLabel(labelNum)
   $file.syswrite("@0\nD=A\n@label#{labelNum}\nD;JEQ\n")
@@ -180,13 +192,36 @@ def analyzePush(arr)
 end
 
 def analyzeBooleanFunctions(arr)
-
+  case arr[1]
+    when 'and'
+      popD
+      popA
+      $file.syswrite "D=D&A\n"
+      pushD
+      #popD
+      #popA
+      #$file.syswrite "D=D+A\nD=D+1\nD=D+1\n@label#{$labelNum}\nD;JEQ\n"
+      #pushConstant '0'
+      #jumpLabel $labelNum + 1
+      #putLabel $labelNum
+      #pushConstant '-1'
+      #putLabel $labelNum + 1
+    when 'or'
+      popD
+      popA
+      $file.syswrite "D=D|A\n"
+      pushD
+    when 'not'
+      popD
+      $file.syswrite"D=!D\n"
+      pushD
+  end
 end
 
-if Dir.glob("#{file_name}.vm").length != 0
-  $file = File.new("#{file_name}.asm", 'w')
+if Dir.glob("#{$file_name}.vm").length != 0
+  $file = File.new("#{$file_name}.asm", 'w')
   initialization()
-  File.readlines("#{file_name}.vm").each do |line|
+  File.readlines("#{$file_name}.vm").each do |line|
     analyzeLine(line)
   end
 end
