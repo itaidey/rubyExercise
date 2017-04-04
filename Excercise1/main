@@ -3,7 +3,7 @@ Dir.chdir "C:/Users/Itai/desktop/"
 $file_name = gets.strip
 $labelNum = 0
 
-def initialization()
+def initialization
   $file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
 end
 
@@ -51,6 +51,7 @@ end
 #changes A and D
 def pushConstant(constant)
   $file.syswrite "@#{constant}\nD=A\n"
+  pushD
 end
 
 #doing pop into A, doesn't change D
@@ -111,9 +112,13 @@ def analyzePop(arr)
   end
 end
 
+def pushMinus1
+  $file.syswrite("D=-1\n")
+  pushD
+end
 
 def analyzeCondition(arr)
-  case arr[1]
+  case arr[0]
     when 'eq'
       popD
       popA
@@ -121,7 +126,7 @@ def analyzeCondition(arr)
       pushConstant '0'
       jumpLabel $labelNum + 1
       putLabel $labelNum
-      pushConstant '-1'
+      pushMinus1
       #jumpLabel $labelNum + 2
       putLabel $labelNum + 1
       #putLabel $labelNum + 2
@@ -129,21 +134,21 @@ def analyzeCondition(arr)
     when 'gt'
       popD
       popA
-      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JGT\n"
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JLT\n"
       pushConstant '0'
       jumpLabel $labelNum + 1
       putLabel $labelNum
-      pushConstant '-1'
+      pushMinus1
       putLabel $labelNum + 1
       $labelNum = $labelNum + 2
     when 'lt'
       popD
       popA
-      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JLT\n"
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JGT\n"
       pushConstant '0'
       jumpLabel $labelNum + 1
       putLabel $labelNum
-      pushConstant '-1'
+      pushMinus1
       putLabel $labelNum + 1
       $labelNum = $labelNum + 2
   end
@@ -160,10 +165,12 @@ def analyzeMath(arr)
     when 'sub'
       popD
       popA
-      $file.syswrite"D=D-A\n"
+      $file.syswrite"D=A-D\n"
       pushD
     when 'neg'
-      $file.syswrite("@0\nA=M-1\nM=-M\n")
+      popD
+      $file.syswrite"D=-D\n"
+      pushD
   end
 end
 
@@ -199,11 +206,11 @@ def analyzePush(arr)
 end
 
 def analyzeBooleanFunctions(arr)
-  case arr[1]
+  case arr[0]
     when 'and'
       popD
       popA
-      $file.syswrite "D=D&A\n"
+      $file.syswrite"D=D&A\n"
       pushD
       #popD
       #popA
@@ -231,4 +238,6 @@ if Dir.glob("#{$file_name}.vm").length != 0
   File.readlines("#{$file_name}.vm").each do |line|
     analyzeLine(line)
   end
+else
+  puts "The file doesn't exists"
 end
