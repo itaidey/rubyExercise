@@ -1,5 +1,5 @@
 puts "Enter file's name: "
-Dir.chdir "E:/users/ophir/desktop/"
+Dir.chdir "C:/Users/Itai/desktop/"
 $file_name = gets.strip
 $labelNum = 0
 
@@ -26,17 +26,17 @@ def swapA_D
   $file.syswrite("A=A+D\nD=A-D\nA=A-D\n")
 end
 
-def SpPlusPlus
+def spPlusPlus
   $file.syswrite "@0\nM=M+1\n"
 end
 
-def SpMinusMinus
+def spMinusMinus
   $file.syswrite "@0\nM=M-1\n"
 end
 
 def pushD
   $file.syswrite "@0\nA=M\nM=D\n"
-  SpPlusPlus
+  spPlusPlus()
 end
 
 def jumpLabel(labelNum)
@@ -150,13 +150,20 @@ def analyzeCondition(arr)
 end
 
 def analyzeMath(arr)
-  case arr[1]
+  #case arr[1] ophirs mistake
+  case arr[0]
     when 'add'
-      $file.syswrite("@0\nA=M\nD=M\n@0\nM=M-1\nA=M\nM=M+D\n")
+      popD
+      popA
+      $file.syswrite"D=D+A\n"
+      pushD
     when 'sub'
-      $file.syswrite("@0\nA=M\nD=M\n@0\nM=M-1\nA=M\nM=M-D\n")
+      popD
+      popA
+      $file.syswrite"D=D-A\n"
+      pushD
     when 'neg'
-      $file.syswrite("AD=0\nA=M\nM=D-M\n")
+      $file.syswrite("@0\nA=M-1\nM=-M\n")
   end
 end
 
