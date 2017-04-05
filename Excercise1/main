@@ -192,7 +192,7 @@ def analyzePush(arr)
     when "temp"
       $file.syswrite("@5\nA=A+D\nD=M\n")
     when "static"
-      puts "ERROR STATIC #{arr}"
+      $file.syswrite("@#{$file_name}.@#{arr[2]}\nD=M\n@0\nA=M\nM=D\n@0\nM=M+1\n")
     when "pointer"
       if arr[2]==0
         $file.syswrite("@3\nA=M\nD=M\n")
