@@ -1,5 +1,7 @@
+puts "Enter file path: "
+path = gets.strip
 puts "Enter file's name: "
-Dir.chdir "C:/Users/Itai/desktop/"
+Dir.chdir path
 $file_name = gets.strip
 $labelNum = 0
 
