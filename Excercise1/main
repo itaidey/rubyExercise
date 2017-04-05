@@ -97,7 +97,7 @@ def analyzePop(arr)
       $file.syswrite("M=D\n")
     when 'static'
       index = arr[2]
-      $file.syswrite("@16\nD=A\n@#{index}\nD=D+A\n")
+      $file.syswrite("@#{$file_name}.#{index}\nD=A\n")
       popA
       swapA_D
       $file.syswrite("M=D\n")
