@@ -182,19 +182,19 @@ def analyzePush(arr)
     $file.syswrite("@#{arr[2]}\nD=A\n")
   end
   case arr[1]
-    when "constant"
-    when "local"
-      $file.syswrite("@1\nA=M\nA=M\nA=A+D\nD=M\n")
-    when "argument"
-      $file.syswrite("@2\nA=M\nA=M\nA=A+D\nD=M\n")
-    when "this"
-      $file.syswrite("@3\nA=M\nA=M\nA=A+D\nD=M\n")
-    when "that"
-      $file.syswrite("@4\nA=M\nA=M\nA=A+D\nD=M\n")
-    when "temp"
+    when 'constant'
+    when 'local'
+      $file.syswrite("@1\nA=M\nA=A+D\nD=M\n")
+    when 'argument'
+      $file.syswrite("@2\nA=M\nA=A+D\nD=M\n")
+    when 'this'
+      $file.syswrite("@3\nA=M\nA=A+D\nD=M\n")
+    when 'that'
+      $file.syswrite("@4\nA=M\nA=A+D\nD=M\n")
+    when 'temp'
       $file.syswrite("@5\nA=A+D\nD=M\n")
     when "static"
-      $file.syswrite("@#{$file_name}.@#{arr[2]}\nD=M\n@0\nA=M\nM=D\n@0\nM=M+1\n")
+      $file.syswrite("@#{$file_name}.#{arr[2]}\nD=M\n@0\nA=M\nM=D\n@0\nM=M+1\n")
     when "pointer"
       if arr[2]==0
         $file.syswrite("@3\nA=M\nD=M\n")
@@ -204,7 +204,7 @@ def analyzePush(arr)
     else puts "ERROR #{arr}"
   end
   # push the value save in D to the top of the stack
-  $file.syswrite("@0\nA=M\nM=D\n@0\nM=M+1\n")
+  pushD
 end
 
 def analyzeBooleanFunctions(arr)
