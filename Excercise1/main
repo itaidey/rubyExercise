@@ -190,9 +190,9 @@ def analyzePush(arr)
     when 'static'
       $file.syswrite("@#{$file_name}.#{arr[2]}\nD=M\n")
     when 'pointer'
-      if arr[2]==0
+      if arr[2]=='0'
         $file.syswrite("@3\nD=M\n")
-      elsif arr[2]==1
+      elsif arr[2]=='1'
         $file.syswrite("@4\nD=M\n")
       end
     else puts "ERROR #{arr}"
