@@ -1,8 +1,6 @@
-puts "Enter file path: "
+puts 'Enter file path: '
 path = gets.strip
-puts "Enter file's name: "
 Dir.chdir path
-$file_name = gets.strip
 $labelNum = 0
 
 def initialization
@@ -11,7 +9,7 @@ end
 
 def analyzeLine(line)
   arr = line.split("\s")
-  if arr[0].eql? "push"
+  if arr[0].eql? 'push'
     analyzePush(arr)
   elsif arr[0].eql? 'pop'
     analyzePop(arr)
@@ -98,11 +96,7 @@ def analyzePop(arr)
       swapA_D
       $file.syswrite("M=D\n")
     when 'static'
-      index = arr[2]
-      $file.syswrite("@#{$file_name}.#{index}\nD=A\n")
-      popA
-      swapA_D
-      $file.syswrite("M=D\n")
+      $file.syswrite("@0\nM=M-1\nA=M\nD=M\n@#{$file_name}.#{arr[2]}\nM=D\n")
     when 'constant'
       #this is error can't get here
     when 'pointer'
@@ -193,9 +187,9 @@ def analyzePush(arr)
       $file.syswrite("@4\nA=M\nA=A+D\nD=M\n")
     when 'temp'
       $file.syswrite("@5\nA=A+D\nD=M\n")
-    when "static"
-      $file.syswrite("@#{$file_name}.#{arr[2]}\nD=M\n@0\nA=M\nM=D\n@0\nM=M+1\n")
-    when "pointer"
+    when 'static'
+      $file.syswrite("@#{$file_name}.#{arr[2]}\nD=M\n")
+    when 'pointer'
       if arr[2]==0
         $file.syswrite("@3\nD=M\n")
       elsif arr[2]==1
@@ -234,12 +228,17 @@ def analyzeBooleanFunctions(arr)
   end
 end
 
-if Dir.glob("#{$file_name}.vm").length != 0
-  $file = File.new("#{$file_name}.asm", 'w')
+
+files = Dir.glob '*.vm'
+for i in 0..files.length-1 do
+  $file_name=files[i]
+  $file = File.new("#{$file_name.split('.')[0]}.asm", 'w')
   initialization()
-  File.readlines("#{$file_name}.vm").each do |line|
+  File.readlines($file_name).each do |line|
     analyzeLine(line)
   end
-else
-  puts "The file doesn't exists"
+end
+
+if files.length == 0
+  puts 'No files found'
 end
