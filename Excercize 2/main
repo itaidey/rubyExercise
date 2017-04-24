@@ -19,7 +19,47 @@ def analyzeLine(line)
     analyzeCondition(arr)
   elsif ['and','or','not'].include? arr[0]
     analyzeBooleanFunctions(arr)
+  elsif arr[0].eql? 'label'
+    analyzeLabelLine(arr)
+  elsif arr[0].eql? 'goto'
+    analyzeGoto(arr)
+  elsif arr[0].eql? 'if-goto'
+    analyzeIfGoto(arr)
+  elsif arr[0].eql? 'function'
+    analyzeFunction(arr)
   end
+end
+
+def analyzeCall(arr)
+  $file.syswrite "@#{$file_name}.#{arr[1]}.ret\n"
+  $file.syswrite("D=A\n")
+  pushD
+
+
+  $file.syswrite "(#{$file_name}.#{arr[1]}.ret)\n"
+end
+
+def analyzeFunction(arr)
+  $file.syswrite "(#{$file_name}.#{arr[1]})\n"
+  arr[2].times do
+    pushMinus1
+  end
+end
+
+def analyzeIfGoto(arr)
+  popA
+  $file.syswrite "D=A\n"
+  $file.syswrite "@#{$file_name}.#{arr[1]}\n"
+  $file.syswrite "D;JNE\n"
+end
+
+def analyzeGoto(arr)
+  $file.syswrite "@#{$file_name}.#{arr[1]}\n"
+  $file.syswrite "0;JMP\n"
+end
+
+def analyzeLabelLine(arr)
+  $file.syswrite "#{$file_name}.#{arr[1]}\n"
 end
 
 def swapA_D
@@ -230,9 +270,9 @@ end
 
 
 files = Dir.glob '*.vm'
+$file = File.new('result.asm', 'w')
 for i in 0..files.length-1 do
   $file_name=files[i]
-  $file = File.new("#{$file_name.split('.')[0]}.asm", 'w')
   initialization()
   File.readlines($file_name).each do |line|
     analyzeLine(line)
