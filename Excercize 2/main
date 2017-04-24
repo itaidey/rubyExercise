@@ -1,0 +1,244 @@
+puts 'Enter file path: '
+path = gets.strip
+Dir.chdir path
+$labelNum = 0
+
+def initialization
+  $file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
+end
+
+def analyzeLine(line)
+  arr = line.split("\s")
+  if arr[0].eql? 'push'
+    analyzePush(arr)
+  elsif arr[0].eql? 'pop'
+    analyzePop(arr)
+  elsif ['add','sub','neg'].include? arr[0]
+    analyzeMath(arr)
+  elsif ['eq','gt','lt'].include? arr[0]
+    analyzeCondition(arr)
+  elsif ['and','or','not'].include? arr[0]
+    analyzeBooleanFunctions(arr)
+  end
+end
+
+def swapA_D
+  $file.syswrite("A=A+D\nD=A-D\nA=A-D\n")
+end
+
+def spPlusPlus
+  $file.syswrite "@0\nM=M+1\n"
+end
+
+def spMinusMinus
+  $file.syswrite "@0\nM=M-1\n"
+end
+
+def pushD
+  $file.syswrite "@0\nA=M\nM=D\n"
+  spPlusPlus()
+end
+
+def jumpLabel(labelNum)
+  $file.syswrite("@0\nD=A\n@label#{labelNum}\nD;JEQ\n")
+end
+
+def putLabel(labelNum)
+  $file.syswrite "(label#{labelNum})\n"
+end
+
+
+#changes A and D
+def pushConstant(constant)
+  $file.syswrite "@#{constant}\nD=A\n"
+  pushD
+end
+
+#doing pop into A, doesn't change D
+def popA
+  $file.syswrite "@0\nM=M-1\nA=M\nA=M\n"
+end
+
+def popD
+  $file.syswrite "@0\nM=M-1\nA=M\nD=M\n"
+end
+
+def analyzePop(arr)
+  case arr[1]
+    when 'local'
+      index = arr[2]
+      $file.syswrite("@#{index}\nD=A\n@1\nD=M+D\n")
+      popA
+      swapA_D
+      $file.syswrite("M=D\n")
+    when 'argument'
+      index = arr[2]
+      $file.syswrite("@#{index}\nD=A\n@2\nD=M+D\n")
+      popA
+      swapA_D
+      $file.syswrite("M=D\n")
+    when 'this'
+      index = arr[2]
+      $file.syswrite("@#{index}\nD=A\n@3\nD=M+D\n")
+      popA
+      swapA_D
+      $file.syswrite("M=D\n")
+    when 'that'
+      index = arr[2]
+      $file.syswrite("@#{index}\nD=A\n@4\nD=M+D\n")
+      popA
+      swapA_D
+      $file.syswrite("M=D\n")
+    when 'temp'
+      index = arr[2]
+      $file.syswrite("@5\nD=A\n@#{index}\nD=D+A\n")
+      popA
+      swapA_D
+      $file.syswrite("M=D\n")
+    when 'static'
+      $file.syswrite("@0\nM=M-1\nA=M\nD=M\n@#{$file_name}.#{arr[2]}\nM=D\n")
+    when 'constant'
+      #this is error can't get here
+    when 'pointer'
+      index = arr[2]
+      $file.syswrite("@3\nD=A\n@#{index}\nD=D+A\n")
+      popA
+      swapA_D
+      $file.syswrite("M=D\n")
+  end
+end
+
+def pushMinus1
+  $file.syswrite("D=-1\n")
+  pushD
+end
+
+def analyzeCondition(arr)
+  case arr[0]
+    when 'eq'
+      popD
+      popA
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JEQ\n"
+      pushConstant '0'
+      jumpLabel $labelNum + 1
+      putLabel $labelNum
+      pushMinus1
+      #jumpLabel $labelNum + 2
+      putLabel $labelNum + 1
+      #putLabel $labelNum + 2
+      $labelNum = $labelNum + 2
+    when 'gt'
+      popD
+      popA
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JLT\n"
+      pushConstant '0'
+      jumpLabel $labelNum + 1
+      putLabel $labelNum
+      pushMinus1
+      putLabel $labelNum + 1
+      $labelNum = $labelNum + 2
+    when 'lt'
+      popD
+      popA
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JGT\n"
+      pushConstant '0'
+      jumpLabel $labelNum + 1
+      putLabel $labelNum
+      pushMinus1
+      putLabel $labelNum + 1
+      $labelNum = $labelNum + 2
+  end
+end
+
+def analyzeMath(arr)
+  #case arr[1] ophirs mistake
+  case arr[0]
+    when 'add'
+      popD
+      popA
+      $file.syswrite"D=D+A\n"
+      pushD
+    when 'sub'
+      popD
+      popA
+      $file.syswrite"D=A-D\n"
+      pushD
+    when 'neg'
+      popD
+      $file.syswrite"D=-D\n"
+      pushD
+  end
+end
+
+def analyzePush(arr)
+  if ['constant','local','argument','this','that','temp'].include? arr[1]
+    #save parameter in D
+    $file.syswrite("@#{arr[2]}\nD=A\n")
+  end
+  case arr[1]
+    when 'constant'
+    when 'local'
+      $file.syswrite("@1\nA=M\nA=A+D\nD=M\n")
+    when 'argument'
+      $file.syswrite("@2\nA=M\nA=A+D\nD=M\n")
+    when 'this'
+      $file.syswrite("@3\nA=M\nA=A+D\nD=M\n")
+    when 'that'
+      $file.syswrite("@4\nA=M\nA=A+D\nD=M\n")
+    when 'temp'
+      $file.syswrite("@5\nA=A+D\nD=M\n")
+    when 'static'
+      $file.syswrite("@#{$file_name}.#{arr[2]}\nD=M\n")
+    when 'pointer'
+      if arr[2]=='0'
+        $file.syswrite("@3\nD=M\n")
+      elsif arr[2]=='1'
+        $file.syswrite("@4\nD=M\n")
+      end
+    else puts "ERROR #{arr}"
+  end
+  # push the value save in D to the top of the stack
+  pushD
+end
+
+def analyzeBooleanFunctions(arr)
+  case arr[0]
+    when 'and'
+      popD
+      popA
+      $file.syswrite"D=D&A\n"
+      pushD
+    #popD
+    #popA
+    #$file.syswrite "D=D+A\nD=D+1\nD=D+1\n@label#{$labelNum}\nD;JEQ\n"
+    #pushConstant '0'
+    #jumpLabel $labelNum + 1
+    #putLabel $labelNum
+    #pushConstant '-1'
+    #putLabel $labelNum + 1
+    when 'or'
+      popD
+      popA
+      $file.syswrite "D=D|A\n"
+      pushD
+    when 'not'
+      popD
+      $file.syswrite"D=!D\n"
+      pushD
+  end
+end
+
+
+files = Dir.glob '*.vm'
+for i in 0..files.length-1 do
+  $file_name=files[i]
+  $file = File.new("#{$file_name.split('.')[0]}.asm", 'w')
+  initialization()
+  File.readlines($file_name).each do |line|
+    analyzeLine(line)
+  end
+end
+
+if files.length == 0
+  puts 'No files found'
+end
