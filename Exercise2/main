@@ -125,7 +125,7 @@ def analyzeGoto(arr)
 end
 
 def analyzeLabelLine(arr)
-  $file.syswrite "#{$file_name}.#{arr[1]}\n"
+  $file.syswrite "(#{$file_name}.#{arr[1]})\n"
 end
 
 def swapA_D
@@ -336,7 +336,7 @@ end
 
 
 files = Dir.glob '*.vm'
-$file = File.new('result.asm', 'w')
+$file = File.new('Sys.asm', 'w')
 initialization()
 for i in 0..files.length-1 do
   $file_name=files[i]
