@@ -1,3 +1,5 @@
+$counter =0;
+
 puts 'Enter file path: '
 path = gets.strip
 Dir.chdir path
@@ -25,18 +27,82 @@ def analyzeLine(line)
     analyzeGoto(arr)
   elsif arr[0].eql? 'if-goto'
     analyzeIfGoto(arr)
-  elsif arr[0].eql? 'function'
+  elsif arr[0].eql? 'func
+tion'
     analyzeFunction(arr)
   end
 end
 
 def analyzeCall(arr)
-  $file.syswrite "@#{$file_name}.#{arr[1]}.ret\n"
+  #return address
+  $file.syswrite "@#{$file_name}.#{arr[1]}.#{$counter}.ret\n"
   $file.syswrite("D=A\n")
   pushD
 
+  #saved LCL
+  $file.syswrite("@1\nD=M\n")
+  pushD
 
-  $file.syswrite "(#{$file_name}.#{arr[1]}.ret)\n"
+  #saved ARG
+  $file.syswrite("@2\nD=M\n")
+  pushD
+  #saved THIS
+  $file.syswrite("@3\nD=M\n")
+  pushD
+
+  #saved THAT
+  $file.syswrite("@4\nD=M\n")
+  pushD
+
+  #initiale LCL
+  $file.syswrite("@0\nD=M\n@1\nM=D\n")
+  pushD
+
+  #initiale ARG
+  $file.syswrite("@0\nD=M\n@5\nD=D-A\n@#{arr[2]}\nD=D-A\n@2\nM=D\n")
+  pushD
+
+  #goto f
+  $file.syswrite "@#{$file_name}.#{arr[1]}\n"
+  $file.syswrite "0;JMP\n"
+
+  #lable return
+  $file.syswrite "(#{$file_name}.#{arr[1]}.#{$counter}.ret)\n"
+
+  $counter = $counter + 1
+end
+
+def analyzeReturn(arr)
+  #frame = lcl
+  $file.syswrite("@1\nD=M\n@13\nM=D\n")
+
+  #ret = *(frame -5)
+  $file.syswrite("@5\nA=D-A\nD=M\n@14\nM=D\n")
+
+  #*ARG = pop()
+  popD
+  $file.syswrite("@2\nA=M\nM=D\n")
+
+  #sp =ARG +1
+  $file.syswrite("@2\nD=M+1\n@0\nM=D\n")
+
+  #THAT =*(FRAME -1)
+  $file.syswrite("@13\nD=M\nD=D-1\nA=D\nD=M\n@4\nM=D")
+
+  #THIS =*(FRAME -2)
+  $file.syswrite("@13\nD=M\nD=D-1\nD=D-1\nA=D\nD=M\n@3\nM=D")
+
+  #ARG =*(FRAME -3)
+  $file.syswrite("@13\nD=M\nD=D-1\nD=D-1\nD=D-1\nA=D\nD=M\n@2\nM=D")
+
+
+  #LCL =*(FRAME -4)
+  $file.syswrite("@13\nD=M\nD=D-1\nD=D-1\nD=D-1\nD=D-1\nA=D\nD=M\n@1\nM=D")
+
+  #goto ret
+  $file.syswrite "@14\nA=M\n"
+  $file.syswrite "0;JMP\n"
+
 end
 
 def analyzeFunction(arr)
@@ -271,9 +337,9 @@ end
 
 files = Dir.glob '*.vm'
 $file = File.new('result.asm', 'w')
+initialization()
 for i in 0..files.length-1 do
   $file_name=files[i]
-  initialization()
   File.readlines($file_name).each do |line|
     analyzeLine(line)
   end
