@@ -6,8 +6,8 @@ Dir.chdir path
 $labelNum = 0
 
 def initialization
-  $file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
-  $file.syswrite("@Sys.init\n0;JMP\n")
+  #$file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
+  #$file.syswrite("@Sys.init\n0;JMP\n")
 end
 
 def analyzeLine(line)
@@ -246,7 +246,7 @@ def analyzeCondition(arr)
     when 'gt'
       popD
       popA
-      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JLT\n"
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JLT\n"#maybe JGT
       pushConstant '0'
       jumpLabel $labelNum + 1
       putLabel $labelNum
@@ -256,7 +256,7 @@ def analyzeCondition(arr)
     when 'lt'
       popD
       popA
-      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JGT\n"
+      $file.syswrite "D=D-A\n@label#{$labelNum}\nD;JGT\n"#maybe JLT
       pushConstant '0'
       jumpLabel $labelNum + 1
       putLabel $labelNum
