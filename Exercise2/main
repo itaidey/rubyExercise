@@ -6,8 +6,8 @@ Dir.chdir path
 $labelNum = 0
 
 def initialization
-  #$file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
-  #$file.syswrite("@Sys.init\n0;JMP\n")
+  $file.syswrite("@256\nD=A\n@0\nM=D\n@300\nD=A\n@1\nM=D\n@400\nD=A\n@2\nM=D\n@3000\nD=A\n@3\nM=D\n@3010\nD=A\n@4\nM=D\n\n")
+  analyzeLine('call Sys.init 0')
 end
 
 def analyzeLine(line)
@@ -77,10 +77,10 @@ def analyzeCall(arr)
 end
 
 def analyzeReturn(arr)
-  #frame = lcl
+  #frame = lcl, restore frame value in ram[13]
   $file.syswrite("@1\nD=M\n@13\nM=D\n")
 
-  #ret = *(frame -5)
+  #RET = *(frame -5)
   $file.syswrite("@5\nA=D-A\nD=M\n@14\nM=D\n")
 
   #*ARG = pop()
@@ -103,7 +103,7 @@ def analyzeReturn(arr)
   #LCL =*(FRAME -4)
   $file.syswrite("@13\nD=M\nD=D-1\nD=D-1\nD=D-1\nD=D-1\nA=D\nD=M\n@1\nM=D\n")
 
-  #goto ret
+  #goto RET
   $file.syswrite "@14\nA=M\n"
   $file.syswrite "0;JMP\n"
 
