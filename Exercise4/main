@@ -14,6 +14,8 @@ def analyzeLine (line)
         $file.syswrite("<symbol> &lt; </symbol>\n")
       elsif terminal =='>'
         $file.syswrite("<symbol> &gt; </symbol>\n")
+      elsif terminal =='&'
+        $file.syswrite("<symbol> &amp; </symbol>\n")
       else
         $file.syswrite("<symbol> #{terminal} </symbol>\n")
       end
@@ -46,7 +48,6 @@ def splitLine(line)
       i = i + 1
     end
   end
-  puts result
   return result
 end
 
@@ -124,8 +125,9 @@ def removeComments (lines)
     #if the line isn't a comment
     elsif !inLongComment
       arr[j] += line
-      i = i +1
-    #if we are in a long comment and the line needs the be removed 
+      i = i + 1
+      j = j + 1
+    #if we are in a long comment and the line needs the be removed
     elsif inLongComment
       i = i + 1
     end
