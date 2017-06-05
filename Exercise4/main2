@@ -1,0 +1,25 @@
+puts 'Enter directory path: '
+path = gets.strip
+Dir.chdir path
+
+
+
+files = Dir.glob '*T.xml'
+
+if files.length == 0
+  puts 'No files found'
+  exit
+end
+
+for i in 0..files.length - 1 do
+
+  $file_name=files[i][0..files[i].index('T.xml')-1]
+  #puts $file_name
+  $file = File.new("#{$file_name}.xml", 'w')
+  lines = File.readlines($file_name)
+  #lines.each do |line|
+  #  analyzeLine(line)
+  #end
+
+end
+

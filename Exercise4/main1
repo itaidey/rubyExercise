@@ -1,4 +1,4 @@
-puts 'Enter file path: '
+puts 'Enter directory path: '
 path = gets.strip
 Dir.chdir path
 
@@ -29,6 +29,9 @@ def analyzeLine (line)
   end
 end
 
+
+
+#adds spaces between tokens
 def splitLine(line)
   i = 0
 
@@ -98,7 +101,7 @@ def removeComments (lines)
       end
       i = i + 1;
 
-    # if there is '/*' comment
+      # if there is '/*' comment
     elsif line.include?('/*') && !inLongComment
       #if there isn't  '*/' in the same line
       if (!line.include?('*/'))
@@ -108,7 +111,7 @@ def removeComments (lines)
         end
         i = i + 1
 
-      #if there is '*/' in the same line
+        #if there is '*/' in the same line
       else
         if line.index('/*') != 0
           temp = line[0..line.index('/*')- 1]
@@ -118,16 +121,16 @@ def removeComments (lines)
           lines[i] = line[line.index('*/')+2 .. line.length]
         end
       end
-    #if we are in the end of '*/'
+      #if we are in the end of '*/'
     elsif inLongComment && line.include?('*/')
       lines[i] = line[line.index('*/') + 2 ..line.length]
       inLongComment = !inLongComment
-    #if the line isn't a comment
+      #if the line isn't a comment
     elsif !inLongComment
       arr[j] += line
       i = i + 1
       j = j + 1
-    #if we are in a long comment and the line needs the be removed
+      #if we are in a long comment and the line needs the be removed
     elsif inLongComment
       i = i + 1
     end
