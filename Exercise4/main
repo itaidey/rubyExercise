@@ -125,7 +125,7 @@ def removeComments (lines)
     elsif !inLongComment
       arr[j] += line
       i = i +1
-    #if we are in a long comment and the line needs the be removed
+    #if we are in a long comment and the line needs the be removed 
     elsif inLongComment
       i = i + 1
     end
