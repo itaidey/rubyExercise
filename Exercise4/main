@@ -105,6 +105,8 @@ def removeComments (lines)
         if (line.index('/*') != 0)
           arr[j] += line[0..line.index('/*') - 1]
         end
+        i = i + 1
+
       #if there is '*/' in the same line
       else
         if line.index('/*') != 0
@@ -115,12 +117,15 @@ def removeComments (lines)
           lines[i] = line[line.index('*/')+2 .. line.length]
         end
       end
+    #if we are in the end of '*/'
     elsif inLongComment && line.include?('*/')
       lines[i] = line[line.index('*/') + 2 ..line.length]
       inLongComment = !inLongComment
+    #if the line isn't a comment
     elsif !inLongComment
       arr[j] += line
       i = i +1
+    #if we are in a long comment and the line needs the be removed
     elsif inLongComment
       i = i + 1
     end
