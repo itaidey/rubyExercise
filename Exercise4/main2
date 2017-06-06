@@ -11,12 +11,61 @@ if files.length == 0
   exit
 end
 
+def start(numberOfTabs, lines)
+  lineNumber = 1
+  $file.syswrite("<class>\n")
+
+
+
+  #writes the keyword class
+  for i in 0..numberOfTabs
+    $file.syswrite("\t")
+  end
+  $file.syswrite("#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+
+  #writes the class name
+  for i in 0..numberOfTabs
+    $file.syswrite("\t")
+  end
+  $file.syswrite("#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+  #calling to classVarDec*
+
+  lineNumber = classVarDec (numberOfTabs,lineNumber,lines)
+
+  $file.syswrite("</class>\n")
+end
+
+def classVarDec(numberOfTabs , lineNumber , lines)
+      #opening
+      $file.syswrite("\t"*numberOfTabs + "<classVarDec>\n")
+      numberOfTabs = numberOfTabs + 1
+
+      #writing the static or field
+      $file.syswrite("\t"*numberOfTabs + "#{lines[lineNumber]}")
+      lineNumber = lineNumber + 1
+
+      #writing the type
+      $file.syswrite("\t"*numberOfTabs + "#{lines[lineNumber]}")
+      lineNumber = lineNumber + 1
+
+      #closing
+      numberOfTabs = numberOfTabs - 1
+      $file.syswrite("\t"*numberOfTabs + "</classVarDec>\n")
+
+end
+
+
 for i in 0..files.length - 1 do
 
   $file_name=files[i][0..files[i].index('T.xml')-1]
   #puts $file_name
-  $file = File.new("#{$file_name}.xml", 'w')
-  lines = File.readlines($file_name)
+  $file = File.new("#{$file_name}1.xml", 'w')
+  lines = File.readlines("#{$file_name}T.xml")
+  start(0,lines)
   #lines.each do |line|
   #  analyzeLine(line)
   #end
