@@ -69,13 +69,25 @@ def subroutineDec (numberOfTabs, lineNumber, lines)
   $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
   lineNumber = lineNumber + 1
 
-  lineNumber = parameterList numberOfTabs , lineNumber , lines
+  lineNumber = parameterList numberOfTabs + 1 , lineNumber , lines
+
+  #closing
   $file.syswrite('  '*numberOfTabs + "</subroutineDec>\n")
   return lineNumber
 end
 
 def parameterList numberOfTabs , lineNumber , lines
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<parameterList>\n")
 
+  while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] != ' ) '
+    $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
+    lineNumber = lineNumber + 1
+  end
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</parameterList>\n")
+  return lineNumber
 end
 
 
