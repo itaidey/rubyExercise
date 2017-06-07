@@ -10,27 +10,29 @@ if files.length == 0
   exit
 end
 
+
+def writeSingleLine numberOfTabs , lineNumber , lines
+  $file.syswrite('  '*(numberOfTabs) +"#{lines[lineNumber]}")
+  return lineNumber + 1
+end
+
 def start(numberOfTabs, lines)
   lineNumber = 1
   $file.syswrite("<class>\n")
 
 
   #writes the keyword class
-  $file.syswrite('  '*(numberOfTabs+1) + "#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
 
   #writes the class name
-  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
   #writes the symbol '{'
-  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
   #calling to classVarDec*
   while (lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)] ==' static ' ||lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' field ')
-    puts 'classVarDec'
     lineNumber = classVarDec numberOfTabs+1, lineNumber, lines
   end
 
@@ -40,8 +42,7 @@ def start(numberOfTabs, lines)
   end
 
   #writes the symbol '}'
-  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
   #closing
   $file.syswrite("</class>\n")
@@ -54,22 +55,25 @@ def subroutineDec (numberOfTabs, lineNumber, lines)
   $file.syswrite('  '*numberOfTabs + "<subroutineDec>\n")
 
   #writes the 'constructor'|'function'|'method'
-  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
   #write return type
-  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
-  #write name
-  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  #write subRoutineName
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
   #write '('
-  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
+
+  #writes the parameter list
   lineNumber = parameterList numberOfTabs + 1 , lineNumber , lines
+
+  #write ')'
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+
+
 
   #closing
   $file.syswrite('  '*numberOfTabs + "</subroutineDec>\n")
@@ -81,8 +85,7 @@ def parameterList numberOfTabs , lineNumber , lines
   $file.syswrite('  '*numberOfTabs + "<parameterList>\n")
 
   while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] != ' ) '
-    $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-    lineNumber = lineNumber + 1
+    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
   end
 
   #closing
@@ -112,18 +115,32 @@ end
 =end
 
 
-#need to implement
+#finished classVarDec
 def classVarDec(numberOfTabs, lineNumber, lines)
   #opening
   $file.syswrite('  '*numberOfTabs + "<classVarDec>\n")
 
   #writing the static or field
-  $file.syswrite('  '*(numberOfTabs + 1) + "#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
   #writing the type
-  $file.syswrite('  '*(numberOfTabs + 1) + "#{lines[lineNumber]}")
-  lineNumber = lineNumber + 1
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+
+  #writing the varName
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+
+  #doing (','varName)*
+  while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] == ' , '
+    #writes ','
+    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+
+    #writes varName
+    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  end
+
+  #writing the ';'
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+
 
   #closing
   $file.syswrite('  '*numberOfTabs + "</classVarDec>\n")
