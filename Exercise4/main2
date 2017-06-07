@@ -18,43 +18,66 @@ def start(numberOfTabs, lines)
 
 
   #writes the keyword class
-  for i in 0..numberOfTabs
-    $file.syswrite("\t")
-  end
-  $file.syswrite("#{lines[lineNumber]}")
+  $file.syswrite('  '*(numberOfTabs+1) + "#{lines[lineNumber]}")
   lineNumber = lineNumber + 1
 
 
   #writes the class name
-  for i in 0..numberOfTabs
-    $file.syswrite("\t")
-  end
-  $file.syswrite("#{lines[lineNumber]}")
+  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+  #writes the symbol '{'
+  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
   lineNumber = lineNumber + 1
 
   #calling to classVarDec*
+  while(lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)] ==' static ' ||lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' field ')
+    puts 'classVarDec'
+    lineNumber = classVarDec numberOfTabs+1 , lineNumber , lines
+  end
 
-  lineNumber = classVarDec (numberOfTabs,lineNumber,lines)
+  #calling to subroutineDec*
+  while(lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' constructor ' ||lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' function '||lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' method ')
+    lineNumber = subroutineDec numberOfTabs+1 , lineNumber , lines
+  end
 
+  #writes the symbol '}'
+  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+  #closing
   $file.syswrite("</class>\n")
 end
 
+
+
+#need to implement
+def subroutineDec (numberOfTabs,lineNumber,lines)
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<subroutineDec>\n")
+  numberOfTabs = numberOfTabs + 1
+
+
+  numberOfTabs = numberOfTabs - 1
+  $file.syswrite('  '*numberOfTabs + "</subroutineDec>\n")
+end
+
+
+#need to implement
 def classVarDec(numberOfTabs , lineNumber , lines)
       #opening
-      $file.syswrite("\t"*numberOfTabs + "<classVarDec>\n")
-      numberOfTabs = numberOfTabs + 1
+      $file.syswrite('  '*numberOfTabs + "<classVarDec>\n")
 
       #writing the static or field
-      $file.syswrite("\t"*numberOfTabs + "#{lines[lineNumber]}")
+      $file.syswrite('  '*(numberOfTabs + 1) + "#{lines[lineNumber]}")
       lineNumber = lineNumber + 1
 
       #writing the type
-      $file.syswrite("\t"*numberOfTabs + "#{lines[lineNumber]}")
+      $file.syswrite('  '*(numberOfTabs + 1) + "#{lines[lineNumber]}")
       lineNumber = lineNumber + 1
 
       #closing
-      numberOfTabs = numberOfTabs - 1
-      $file.syswrite("\t"*numberOfTabs + "</classVarDec>\n")
+      $file.syswrite('  '*numberOfTabs + "</classVarDec>\n")
 
 end
 
