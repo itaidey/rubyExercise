@@ -60,7 +60,7 @@ def subroutineDec (numberOfTabs, lineNumber, lines)
   #write return type
   lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
-  #write subRoutineName
+  #write subroutineName
   lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
   #write '('
@@ -73,17 +73,77 @@ def subroutineDec (numberOfTabs, lineNumber, lines)
   #write ')'
   lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
 
-
+  lineNumber = subroutineBody numberOfTabs+1 , lineNumber , lines
 
   #closing
   $file.syswrite('  '*numberOfTabs + "</subroutineDec>\n")
   return lineNumber
 end
 
+def subroutineBody numberOfTabs , lineNumber , lines
+
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<subroutineBody>\n")
+
+  #writes '{'
+  lineNumber = writeSingleLine numberOfTabs , lineNumber , lines
+
+  #write varDec*
+  while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] == ' var '
+    #writes varDec
+    lineNumber = varDec numberOfTabs+1 , lineNumber , lines
+
+  end
+
+  #write statements
+
+
+
+  #writes '}'
+  lineNumber = writeSingleLine numberOfTabs , lineNumber , lines
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</subroutineBody>\n")
+  return lineNumber
+end
+
+def varDec numberOfTabs , lineNumber , lines
+
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<varDec>\n")
+
+  #writes var
+
+
+  #writes type
+
+
+  #writes varName
+
+
+  #doing (','varName)*
+  while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] == ' , '
+    #writes ','
+    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+
+    #writes varName
+    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  end
+
+  #writing the ';'
+  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</varDec>\n")
+  return lineNumber
+end
+
+
 def parameterList numberOfTabs , lineNumber , lines
   #opening
   $file.syswrite('  '*numberOfTabs + "<parameterList>\n")
 
+  #writes untill gets to ')'
   while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] != ' ) '
     lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
   end
@@ -92,28 +152,6 @@ def parameterList numberOfTabs , lineNumber , lines
   $file.syswrite('  '*numberOfTabs + "</parameterList>\n")
   return lineNumber
 end
-
-
-
-=begin
-def type numberOfTabs , lineNumber , lines
-
-  #opening
-  $file.syswrite('  '*numberOfTabs + "<type>\n")
-
-  temp = lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]
-  if [' int ',' char ' , ' boolean '].include? temp
-    $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
-    lineNumber = lineNumber + 1
-    else
-  end
-
-
-  #ending
-  $file.syswrite('  '*numberOfTabs + "</type>\n")
-end
-=end
-
 
 #finished classVarDec
 def classVarDec(numberOfTabs, lineNumber, lines)
