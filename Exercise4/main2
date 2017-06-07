@@ -3,7 +3,6 @@ path = gets.strip
 Dir.chdir path
 
 
-
 files = Dir.glob '*T.xml'
 
 if files.length == 0
@@ -14,7 +13,6 @@ end
 def start(numberOfTabs, lines)
   lineNumber = 1
   $file.syswrite("<class>\n")
-
 
 
   #writes the keyword class
@@ -31,14 +29,14 @@ def start(numberOfTabs, lines)
   lineNumber = lineNumber + 1
 
   #calling to classVarDec*
-  while(lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)] ==' static ' ||lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' field ')
+  while (lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)] ==' static ' ||lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' field ')
     puts 'classVarDec'
-    lineNumber = classVarDec numberOfTabs+1 , lineNumber , lines
+    lineNumber = classVarDec numberOfTabs+1, lineNumber, lines
   end
 
   #calling to subroutineDec*
-  while(lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' constructor ' ||lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' function '||lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' method ')
-    lineNumber = subroutineDec numberOfTabs+1 , lineNumber , lines
+  while (lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' constructor ' ||lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' function '||lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]==' method ')
+    lineNumber = subroutineDec numberOfTabs+1, lineNumber, lines
   end
 
   #writes the symbol '}'
@@ -50,35 +48,75 @@ def start(numberOfTabs, lines)
 end
 
 
-
 #need to implement
-def subroutineDec (numberOfTabs,lineNumber,lines)
+def subroutineDec (numberOfTabs, lineNumber, lines)
   #opening
   $file.syswrite('  '*numberOfTabs + "<subroutineDec>\n")
-  numberOfTabs = numberOfTabs + 1
 
+  #writes the 'constructor'|'function'|'method'
+  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
 
-  numberOfTabs = numberOfTabs - 1
+  #write return type
+  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+  #write name
+  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+  #write '('
+  $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+  lineNumber = parameterList numberOfTabs , lineNumber , lines
   $file.syswrite('  '*numberOfTabs + "</subroutineDec>\n")
+  return lineNumber
+end
+
+def parameterList numberOfTabs , lineNumber , lines
+
 end
 
 
-#need to implement 
-def classVarDec(numberOfTabs , lineNumber , lines)
-      #opening
-      $file.syswrite('  '*numberOfTabs + "<classVarDec>\n")
 
-      #writing the static or field
-      $file.syswrite('  '*(numberOfTabs + 1) + "#{lines[lineNumber]}")
-      lineNumber = lineNumber + 1
+=begin
+def type numberOfTabs , lineNumber , lines
 
-      #writing the type
-      $file.syswrite('  '*(numberOfTabs + 1) + "#{lines[lineNumber]}")
-      lineNumber = lineNumber + 1
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<type>\n")
 
-      #closing
-      $file.syswrite('  '*numberOfTabs + "</classVarDec>\n")
+  temp = lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]
+  if [' int ',' char ' , ' boolean '].include? temp
+    $file.syswrite('  '*(numberOfTabs+1) +"#{lines[lineNumber]}")
+    lineNumber = lineNumber + 1
+    else
+  end
 
+
+  #ending
+  $file.syswrite('  '*numberOfTabs + "</type>\n")
+end
+=end
+
+
+#need to implement
+def classVarDec(numberOfTabs, lineNumber, lines)
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<classVarDec>\n")
+
+  #writing the static or field
+  $file.syswrite('  '*(numberOfTabs + 1) + "#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+  #writing the type
+  $file.syswrite('  '*(numberOfTabs + 1) + "#{lines[lineNumber]}")
+  lineNumber = lineNumber + 1
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</classVarDec>\n")
+
+  return lineNumber
 end
 
 
@@ -88,7 +126,7 @@ for i in 0..files.length - 1 do
   #puts $file_name
   $file = File.new("#{$file_name}1.xml", 'w')
   lines = File.readlines("#{$file_name}T.xml")
-  start(0,lines)
+  start(0, lines)
   #lines.each do |line|
   #  analyzeLine(line)
   #end
