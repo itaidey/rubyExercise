@@ -63,7 +63,7 @@ def subroutineDec (numberOfTabs,lineNumber,lines)
 end
 
 
-#need to implement
+#need to implement 
 def classVarDec(numberOfTabs , lineNumber , lines)
       #opening
       $file.syswrite('  '*numberOfTabs + "<classVarDec>\n")
