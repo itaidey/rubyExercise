@@ -11,7 +11,7 @@ if files.length == 0
 end
 
 
-def writeSingleLine numberOfTabs , lineNumber , lines
+def writeSingleLine numberOfTabs, lineNumber, lines
   $file.syswrite('  '*(numberOfTabs) +"#{lines[lineNumber]}")
   return lineNumber + 1
 end
@@ -22,14 +22,14 @@ def start(numberOfTabs, lines)
 
 
   #writes the keyword class
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
 
   #writes the class name
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #writes the symbol '{'
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #calling to classVarDec*
   while (lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)] ==' static ' ||lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' field ')
@@ -42,7 +42,7 @@ def start(numberOfTabs, lines)
   end
 
   #writes the symbol '}'
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #closing
   $file.syswrite("</class>\n")
@@ -55,83 +55,256 @@ def subroutineDec (numberOfTabs, lineNumber, lines)
   $file.syswrite('  '*numberOfTabs + "<subroutineDec>\n")
 
   #writes the 'constructor'|'function'|'method'
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #write return type
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #write subroutineName
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #write '('
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
 
   #writes the parameter list
-  lineNumber = parameterList numberOfTabs + 1 , lineNumber , lines
+  lineNumber = parameterList numberOfTabs + 1, lineNumber, lines
 
   #write ')'
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
-  lineNumber = subroutineBody numberOfTabs+1 , lineNumber , lines
+  lineNumber = subroutineBody numberOfTabs+1, lineNumber, lines
 
   #closing
   $file.syswrite('  '*numberOfTabs + "</subroutineDec>\n")
   return lineNumber
 end
 
-def subroutineBody numberOfTabs , lineNumber , lines
+def subroutineBody numberOfTabs, lineNumber, lines
 
   #opening
   $file.syswrite('  '*numberOfTabs + "<subroutineBody>\n")
 
   #writes '{'
-  lineNumber = writeSingleLine numberOfTabs , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #write varDec*
   while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] == ' var '
     #writes varDec
-    lineNumber = varDec numberOfTabs+1 , lineNumber , lines
+    lineNumber = varDec numberOfTabs+1, lineNumber, lines
 
   end
 
   #write statements
-
-
+  lineNumber = statements numberOfTabs+1, lineNumber, lines
 
   #writes '}'
-  lineNumber = writeSingleLine numberOfTabs , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #closing
   $file.syswrite('  '*numberOfTabs + "</subroutineBody>\n")
   return lineNumber
 end
 
-def varDec numberOfTabs , lineNumber , lines
+def statements numberOfTabs, lineNumber, lines
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<statements>\n")
+  temp = lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]
+  while [' let ', ' if ', ' while ', ' do ', ' return '].include? temp
+    case temp
+      when ' let '
+        lineNumber = letStatement numberOfTabs+1, lineNumber, lines
+      when ' if '
+        lineNumber = ifStatement numberOfTabs+1, lineNumber, lines
+      when ' while '
+        lineNumber = whileStatement numberOfTabs+1, lineNumber, lines
+      when ' do '
+        lineNumber = doStatement numberOfTabs+1, lineNumber, lines
+      when ' return '
+        lineNumber = returnStatement numberOfTabs+1, lineNumber, lines
+    end
+  end
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</statements>\n")
+  return lineNumber
+end
+
+def expression numberOfTabs, lineNumber, lines
+
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<expression>\n")
+
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</expression>\n")
+  return lineNumber
+
+end
+
+def letStatement numberOfTabs, lineNumber, lines
+
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<letStatement>\n")
+
+  #writes varName
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  if (lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' [ ')
+
+    #writes [
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+    #writes expression
+    lineNumber = expression numberOfTabs+1, lineNumber, lines
+
+    #writes ]
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  end
+
+  #writes '='
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  #writes expression
+  lineNumber = expression numberOfTabs+1, lineNumber, lines
+
+  #writes ';'
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</letStatement>\n")
+  return lineNumber
+
+end
+
+def ifStatement numberOfTabs, lineNumber, lines
+
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<ifStatement>\n")
+
+  #writes if
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  #writes '('
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  #writes expression
+  lineNumber = expression numberOfTabs+1, lineNumber, lines
+  #writes ')'
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  #writes '{'
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  #writes statements
+  lineNumber = statements numberOfTabs+1, lineNumber, lines
+  #writes '}'
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  if (lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' else ')
+
+    #writes else
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    #writes '{'
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    #writes statements
+    lineNumber = statements numberOfTabs+1, lineNumber, lines
+    #writes '}'
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  end
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</ifStatement>\n")
+  return lineNumber
+
+end
+
+def whileStatement numberOfTabs, lineNumber, lines
+
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<whileStatement>\n")
+
+  #writes while
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  #writes '('
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  #writes expression
+  lineNumber = expression numberOfTabs+1, lineNumber, lines
+  #writes ')'
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  #writes '{'
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  #writes statement
+  lineNumber = statements numberOfTabs+1, lineNumber, lines
+  #writes '}'
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</whileStatement>\n")
+  return lineNumber
+
+end
+
+def doStatement numberOfTabs, lineNumber, lines
+
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<doStatement>\n")
+
+  #writes do
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  #writes subroutineCall
+  lineNumber = subroutineCall numberOfTabs+1, lineNumber, lines
+
+
+  #writes ';'
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</doStatement>\n")
+  return lineNumber
+
+end
+
+
+#need to implement
+def subroutineCall numberOfTabs, lineNumber, lines
+
+end
+
+def returnStatement numberOfTabs, lineNumber, lines
+
+  #opening
+  $file.syswrite('  '*numberOfTabs + "<returnStatement>\n")
+
+  #closing
+  $file.syswrite('  '*numberOfTabs + "</returnStatement>\n")
+  return lineNumber
+
+end
+
+
+def varDec numberOfTabs, lineNumber, lines
 
   #opening
   $file.syswrite('  '*numberOfTabs + "<varDec>\n")
 
   #writes var
-
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #writes type
-
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #writes varName
-
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #doing (','varName)*
   while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] == ' , '
     #writes ','
-    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
     #writes varName
-    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
   end
 
   #writing the ';'
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #closing
   $file.syswrite('  '*numberOfTabs + "</varDec>\n")
@@ -139,13 +312,13 @@ def varDec numberOfTabs , lineNumber , lines
 end
 
 
-def parameterList numberOfTabs , lineNumber , lines
+def parameterList numberOfTabs, lineNumber, lines
   #opening
   $file.syswrite('  '*numberOfTabs + "<parameterList>\n")
 
   #writes untill gets to ')'
   while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] != ' ) '
-    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
   end
 
   #closing
@@ -159,25 +332,25 @@ def classVarDec(numberOfTabs, lineNumber, lines)
   $file.syswrite('  '*numberOfTabs + "<classVarDec>\n")
 
   #writing the static or field
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #writing the type
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #writing the varName
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #doing (','varName)*
   while lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1] == ' , '
     #writes ','
-    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
     #writes varName
-    lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
   end
 
   #writing the ';'
-  lineNumber = writeSingleLine numberOfTabs+1 , lineNumber , lines
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
 
   #closing
