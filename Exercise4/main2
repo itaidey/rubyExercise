@@ -136,7 +136,7 @@ def expression numberOfTabs, lineNumber, lines
   $file.syswrite('  '*numberOfTabs + "<expression>\n")
 
   #term
-  lineNumber = doStatement numberOfTabs+1, lineNumber, lines
+  lineNumber = term numberOfTabs+1, lineNumber, lines
 
   #doing (op term)*
   while [' + ', ' - ', ' * ', ' / ', ' & ', ' | ', ' < ', ' > ', ' = '].include? lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]
@@ -342,7 +342,7 @@ def term numberOfTabs, lineNumber, lines
 
 
   #doing '(' expression ')'
-  if (lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]!=' ( ')
+  if (lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' ( ')
 
     #writes '('
     lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
@@ -363,7 +363,7 @@ def term numberOfTabs, lineNumber, lines
     lineNumber = term numberOfTabs+1, lineNumber, lines
 
     #doing varName '[' expression ']', there is look ahead
-  elsif (lines[lineNumber+1][(lines[lineNumber + 1].index('>')+1)..(lines[lineNumber+1].index('</')-1)]!=' [ ')
+  elsif (lines[lineNumber+1][(lines[lineNumber + 1].index('>')+1)..(lines[lineNumber+1].index('</')-1)]==' [ ')
 
     #writes varName
     lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
@@ -401,47 +401,39 @@ end
 def subroutineCall numberOfTabs, lineNumber, lines
 
 
-  #opening
-  $file.syswrite('  '*numberOfTabs + "<subroutineCall>\n")
-
   if lines[lineNumber+1][(lines[lineNumber + 1].index('>')+1)..(lines[lineNumber+1].index('</')-1)]==' ( '
     #writes subroutineName
-    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    lineNumber = writeSingleLine numberOfTabs, lineNumber, lines
 
     #writes ' ( '
-    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    lineNumber = writeSingleLine numberOfTabs, lineNumber, lines
 
     #writes expressionList
-    lineNumber = expressionList numberOfTabs+1, lineNumber, lines
+    lineNumber = expressionList numberOfTabs, lineNumber, lines
 
     #writes ')'
-    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    lineNumber = writeSingleLine numberOfTabs, lineNumber, lines
 
   elsif lines[lineNumber+1][(lines[lineNumber + 1].index('>')+1)..(lines[lineNumber+1].index('</')-1)] == ' . '
 
     #writes className|varName
-    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    lineNumber = writeSingleLine numberOfTabs, lineNumber, lines
 
     #writes '.'
-    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    lineNumber = writeSingleLine numberOfTabs, lineNumber, lines
 
     #writes subroutineName
-    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    lineNumber = writeSingleLine numberOfTabs, lineNumber, lines
 
     #writes ' ( '
-    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    lineNumber = writeSingleLine numberOfTabs, lineNumber, lines
 
     #writes expressionList
-    lineNumber = expressionList numberOfTabs+1, lineNumber, lines
+    lineNumber = expressionList numberOfTabs, lineNumber, lines
 
     #writes ')'
-    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+    lineNumber = writeSingleLine numberOfTabs, lineNumber, lines
   end
-
-
-  #closing
-  $file.syswrite('  '*numberOfTabs + "</subroutineCall>\n")
-  return lineNumber
 end
 
 
