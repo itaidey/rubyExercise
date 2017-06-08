@@ -112,17 +112,23 @@ def statements numberOfTabs, lineNumber, lines
   $file.syswrite('  '*numberOfTabs + "<statements>\n")
   temp = lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]
   while [' let ', ' if ', ' while ', ' do ', ' return '].include? temp
-    case temp
-      when ' let '
-        lineNumber = letStatement numberOfTabs+1, lineNumber, lines
-      when ' if '
-        lineNumber = ifStatement numberOfTabs+1, lineNumber, lines
-      when ' while '
-        lineNumber = whileStatement numberOfTabs+1, lineNumber, lines
-      when ' do '
-        lineNumber = doStatement numberOfTabs+1, lineNumber, lines
-      when ' return '
-        lineNumber = returnStatement numberOfTabs+1, lineNumber, lines
+
+    temp = lines[lineNumber][lines[lineNumber].index('>')+1..lines[lineNumber].index('</')-1]
+    if temp == ' let '
+      #letStatement
+      lineNumber = letStatement numberOfTabs+1, lineNumber, lines
+    elsif temp == ' if '
+      #ifStatement
+      lineNumber = ifStatement numberOfTabs+1, lineNumber, lines
+    elsif temp == ' while '
+      #whileStatement
+      lineNumber = whileStatement numberOfTabs+1, lineNumber, lines
+    elsif temp == ' do '
+      #doStatement
+      lineNumber = doStatement numberOfTabs+1, lineNumber, lines
+    elsif temp == ' return '
+      #returnStatement
+      lineNumber = returnStatement numberOfTabs+1, lineNumber, lines
     end
   end
   #closing
@@ -139,7 +145,7 @@ def expression numberOfTabs, lineNumber, lines
   lineNumber = term numberOfTabs+1, lineNumber, lines
 
   #doing (op term)*
-  while [' + ', ' - ', ' * ', ' / ', ' & ', ' | ', ' < ', ' > ', ' = '].include? lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]
+  while [' + ', ' - ', ' * ', ' / ', ' &amp; ', ' | ', ' &lt; ', ' &gt; ', ' = '].include? lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]
 
     #op
     lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
@@ -378,10 +384,10 @@ def term numberOfTabs, lineNumber, lines
     lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
     #doing subroutineCall
-  elsif ([' ( ',' . '].include? lines[lineNumber+1][(lines[lineNumber + 1].index('>')+1)..(lines[lineNumber+1].index('</')-1)])
+  elsif ([' ( ', ' . '].include? lines[lineNumber+1][(lines[lineNumber + 1].index('>')+1)..(lines[lineNumber+1].index('</')-1)])
 
     #subroutineCall
-    lineNumber = subroutineCall numberOfTabs+1, lineNumber , lines
+    lineNumber = subroutineCall numberOfTabs+1, lineNumber, lines
 
 
   else
