@@ -404,6 +404,39 @@ def subroutineCall numberOfTabs, lineNumber, lines
   #opening
   $file.syswrite('  '*numberOfTabs + "<subroutineCall>\n")
 
+  if lines[lineNumber+1][(lines[lineNumber + 1].index('>')+1)..(lines[lineNumber+1].index('</')-1)]==' ( '
+    #writes subroutineName
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+    #writes ' ( '
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+    #writes expressionList
+    lineNumber = expressionList numberOfTabs+1, lineNumber, lines
+
+    #writes ')'
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+  elsif lines[lineNumber+1][(lines[lineNumber + 1].index('>')+1)..(lines[lineNumber+1].index('</')-1)] == ' . '
+
+    #writes className|varName
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+    #writes '.'
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+    #writes subroutineName
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+    #writes ' ( '
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+
+    #writes expressionList
+    lineNumber = expressionList numberOfTabs+1, lineNumber, lines
+
+    #writes ')'
+    lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
+  end
 
 
   #closing
