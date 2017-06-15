@@ -554,15 +554,23 @@ def classVarDec
   return myNode
 end
 
-def print(myTree,tabs)
+def printXML(myTree,tabs)
   if myTree.is_a? TerminalNode
     $file.syswrite('  '*tabs+myTree.text)
   elsif myTree.is_a? NonTerminalNode
     $file.syswrite('  '*tabs+"<"+myTree.type+">\n")
     myTree.itsNodes.each do |i|
-      print i,tabs+1
+      printXML i,tabs+1
     end
     $file.syswrite('  '*tabs+"</"+myTree.type+">\n")
+  end
+end
+
+def printNode(node)
+  if node.is_a? NonTerminalNode
+    if node.type == 'subRoutineDec'
+      
+    end
   end
 end
 
@@ -585,5 +593,5 @@ for i in 0..files.length - 1 do
   $file = File.new("#{$file_name}.xml", 'w')
   $lines = File.readlines("#{$file_name}T.xml")
   myTree = start
-  print myTree,0
+  printXML myTree,0
 end
