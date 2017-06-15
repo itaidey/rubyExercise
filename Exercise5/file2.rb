@@ -14,6 +14,10 @@ class NonTerminalNode < Node
     @itsNodes
   end
 
+  def type
+    @type
+  end
+
   def addNode(node)
     @itsNodes.push node
   end
@@ -556,6 +560,18 @@ def classVarDec
   return myNode
 end
 
+def print(myTree,tabs)
+  if myTree.is_a? TerminalNode
+    $file.syswrite('  '*tabs+myTree.text)
+  elsif myTree.is_a? NonTerminalNode
+    $file.syswrite('  '*tabs+"<"+myTree.type+">\n")
+    myTree.itsNodes.each do |i|
+      print i,tabs+1
+    end
+    $file.syswrite('  '*tabs+"</"+myTree.type+">\n")
+  end
+end
+
 
 #---------------Main---------------------
 $keyword = %w(if class constructor function method field static var int char boolean void true false null this let do else while return)
@@ -568,16 +584,6 @@ files = Dir.glob '*T.xml'
 if files.length == 0
   puts 'No files found'
   exit
-end
-
-def print(myTree,tabs)
-  if myTree.is_a? TerminalNode
-    $file.syswrite('  '*tabs+myTree.text)
-  elsif myTree.is_a? NonTerminalNode
-    myTree.itsNodes.each do |i|
-      print i,tabs+1
-    end
-  end
 end
 
 for i in 0..files.length - 1 do
