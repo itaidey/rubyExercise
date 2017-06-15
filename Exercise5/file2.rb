@@ -283,11 +283,6 @@ def ifStatement
   return myNode
 end
 
-#STOPPED HERE
-#STOPPED HERE
-#STOPPED HERE
-#STOPPED HERE
-#STOPPED HERE
 def whileStatement
   myNode = NonTerminalNode.new('whileStatement')
 
@@ -359,7 +354,6 @@ end
 
 def term
   myNode = NonTerminalNode.new('term')
-
 
   #doing '(' expression ')'
   if ($lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)]==' ( ')
