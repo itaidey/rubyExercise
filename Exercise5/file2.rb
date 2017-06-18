@@ -36,6 +36,79 @@ class TerminalNode < Node
   # @type #one of: keyword, symbol, integerConstant, stringConstant, identifier
 end
 
+
+
+class MySymbol
+
+  def initialize (name, type, kind, number)
+    # Instance variables
+    @name = name
+    @type = type
+    @kind = kind
+    @number = number
+  end
+
+  def getName
+    @name
+  end
+
+  def getType
+    @type
+  end
+
+  def getKind
+    @kind
+  end
+
+  def getNumber
+    @number
+  end
+
+  def myPrint
+    puts @name +' : ' +@type +' : ' + @kind +' : ' + @number.to_s+';'
+  end
+
+end
+
+class SymbolTable
+
+  def initialize
+    @symbols = Array.new
+  end
+
+  def addSymbol(name,type,kind)
+    @symbols.push(MySymbol.new(name,type,kind,maxKind(kind) + 1))
+  end
+  def maxKind(kind)
+    num = -1
+    if @symbols == nil
+      return -1
+    end
+
+    for i in 0.. (@symbols.length) -1
+      if @symbols[i].getKind == kind && @symbols[i].getNumber >= num
+        num = @symbols[i].getNumber
+      end
+    end
+    return num
+  end
+
+  def myPrint
+    if @symbols == nil
+      puts 'empty'
+      puts
+      return
+    end
+    for i in 0.. (@symbols.length) -1
+      @symbols[i].myPrint
+    end
+    puts
+  end
+end
+
+$classScopeSymbolTable = SymbolTable.new
+$methodScopeSymbolTable = SymbolTable.new
+
 =begin
 def writeSingleLine
   $file.syswrite('  '*(numberOfTabs) +"#{$lines[$lineNumber]}")
@@ -79,6 +152,9 @@ end
 
 def subroutineDec
   myNode=NonTerminalNode.new('subroutineDec')
+
+  #initializing the methodSymbolTable
+  $methodScopeSymbolTable = SymbolTable.new
 
   #writes the 'constructor'|'function'|'method'
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
@@ -471,10 +547,12 @@ def varDec
   myNode = NonTerminalNode.new('varDec')
 
   #writes var
+  kind = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
   #writes type
+  type = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
   if $keyword.include? $lines[$lineNumber]
     myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   else
@@ -483,9 +561,12 @@ def varDec
   $lineNumber = $lineNumber+1
 
   #writes varName
+  name = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
   myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
+  #adding to $methodScopeSymbolTable
+  $methodScopeSymbolTable.addSymbol name, type,kind
   #doing (','varName)*
   while $lines[$lineNumber][$lines[$lineNumber].index('>')+1..$lines[$lineNumber].index('</')-1] == ' , '
     #writes ','
@@ -493,8 +574,12 @@ def varDec
     $lineNumber = $lineNumber+1
 
     #writes varName
+    name = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
+    #adding to $methodScopeSymbolTable
+    $methodScopeSymbolTable.addSymbol name, type,kind
+
   end
 
   #writing the ';'
@@ -507,7 +592,6 @@ end
 
 def parameterList
   myNode = NonTerminalNode.new('parameterList')
-
   #writes until gets to ')'
   while $lines[$lineNumber][$lines[$lineNumber].index('>')+1..$lines[$lineNumber].index('</')-1] != ' ) '
     lineNumber = writeSingleLine numberOfTabs+1, lineNumber, $lines
@@ -521,10 +605,12 @@ def classVarDec
   myNode = NonTerminalNode.new('classVarDec')
 
   #writing the static or field
+  kind = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
   #writing the type
+  type = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
   if $keyword.include? $lines[$lineNumber]
     myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   else
@@ -533,8 +619,12 @@ def classVarDec
   $lineNumber = $lineNumber+1
 
   #writing the varName
+  name = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
   myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
+
+  #adding to classSymbolTable
+  $classScopeSymbolTable.addSymbol name,type,kind
 
   #doing (','varName)*
   while $lines[$lineNumber][$lines[$lineNumber].index('>')+1..$lines[$lineNumber].index('</')-1] == ' , '
@@ -543,8 +633,11 @@ def classVarDec
     $lineNumber = $lineNumber+1
 
     #writes varName
+    name = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
+    $classScopeSymbolTable.addSymbol name,type,kind
+
   end
 
   #writing the ';'
@@ -557,13 +650,13 @@ end
 
 def printXML(myTree,tabs)
   if myTree.is_a? TerminalNode
-    $file.syswrite('  '*tabs+myTree.text)
+    $xmlFile.syswrite('  '*tabs+myTree.text)
   elsif myTree.is_a? NonTerminalNode
-    $file.syswrite('  '*tabs+"<"+myTree.type+">\n")
+    $xmlFile.syswrite('  '*tabs+"<"+myTree.type+">\n")
     myTree.itsNodes.each do |i|
       printXML i,tabs+1
     end
-    $file.syswrite('  '*tabs+"</"+myTree.type+">\n")
+    $xmlFile.syswrite('  '*tabs+"</"+myTree.type+">\n")
   end
 end
 
@@ -577,6 +670,9 @@ end
 
 
 #---------------Main---------------------
+
+
+
 $keyword = %w(if class constructor function method field static var int char boolean void true false null this let do else while return)
 puts 'Enter directory path: '
 path = gets.strip
@@ -591,8 +687,11 @@ end
 
 for i in 0..files.length - 1 do
   $file_name=files[i][0..files[i].index('T.xml')-1]
-  $file = File.new("#{$file_name}2.xml", 'w')
+  $xmlFile = File.new("#{$file_name}2.xml", 'w')
+  $vmFile = File.new("#{$file_name}1.vm",'w')
   $lines = File.readlines("#{$file_name}T.xml")
   myTree = start
+  $classScopeSymbolTable.myPrint
+
   printXML myTree,0
 end
