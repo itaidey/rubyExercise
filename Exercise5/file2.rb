@@ -530,6 +530,7 @@ def classVarDec
   else
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
   end
+  $lineNumber = $lineNumber+1
 
   #writing the varName
   myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
@@ -590,7 +591,7 @@ end
 
 for i in 0..files.length - 1 do
   $file_name=files[i][0..files[i].index('T.xml')-1]
-  $file = File.new("#{$file_name}.xml", 'w')
+  $file = File.new("#{$file_name}2.xml", 'w')
   $lines = File.readlines("#{$file_name}T.xml")
   myTree = start
   printXML myTree,0
