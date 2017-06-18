@@ -591,7 +591,18 @@ end
 
 
 def parameterList
+  kind = 'argument'
+
   myNode = NonTerminalNode.new('parameterList')
+  if $lines[$lineNumber][$lines[$lineNumber].index('>')+1..$lines[$lineNumber].index('</')-1] != ' ) '
+  type = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, $lines
+
+  name = $lines[$lineNumber][($lines[$lineNumber].index('>')+2)..($lines[$lineNumber].index(' </')-1)]
+  lineNumber = writeSingleLine numberOfTabs+1, lineNumber, $lines
+
+  $methodScopeSymbolTable.addSymbol name,type,kind
+  end
   #writes until gets to ')'
   while $lines[$lineNumber][$lines[$lineNumber].index('>')+1..$lines[$lineNumber].index('</')-1] != ' ) '
     lineNumber = writeSingleLine numberOfTabs+1, lineNumber, $lines
