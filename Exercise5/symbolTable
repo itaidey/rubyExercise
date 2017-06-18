@@ -36,9 +36,10 @@ class SymbolTable
     @symbols = Array.new
   end
 
-  def addSymbol(name,type,kind)
-    @symbols.push(MySymbol.new(name,type,kind,maxKind(kind) + 1))
+  def addSymbol(name, type, kind)
+    @symbols.push(MySymbol.new(name, type, kind, maxKind(kind) + 1))
   end
+
   def maxKind(kind)
     num = -1
     if @symbols == nil
