@@ -1,0 +1,72 @@
+class MySymbol
+
+  def initialize (name, type, kind, number)
+    # Instance variables
+    @name = name
+    @type = type
+    @kind = kind
+    @number = number
+  end
+
+  def getName
+    @name
+  end
+
+  def getType
+    @type
+  end
+
+  def getKind
+    @kind
+  end
+
+  def getNumber
+    @number
+  end
+
+  def myPrint
+    puts @name +' : ' +@type +' : ' + @kind +' : ' + @number.to_s+';'
+  end
+
+end
+
+class SymbolTable
+
+  def initialize
+    @symbols = Array.new
+  end
+
+  def addSymbol(name,type,kind)
+    @symbols.push(MySymbol.new(name,type,kind,maxKind(kind) + 1))
+  end
+  def maxKind(kind)
+    num = -1
+    if @symbols == nil
+      return -1
+    end
+
+    for i in 0.. (@symbols.length) -1
+      if @symbols[i].getKind == kind && @symbols[i].getNumber >= num
+        num = @symbols[i].getNumber
+      end
+    end
+    return num
+  end
+
+  def myPrint
+    if @symbols == nil
+      puts 'empty'
+      puts
+      return
+    end
+    for i in 0.. (@symbols.length) -1
+      @symbols[i].myPrint
+    end
+    puts
+  end
+end
+
+classScopeSymbolTable = SymbolTable.new
+methodScopeSymbolTable = SymbolTable.new
+
+
