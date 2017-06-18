@@ -83,6 +83,10 @@ class SymbolTable
     @symbols.push(MySymbol.new(name, type, kind, maxKind(kind) + 1))
   end
 
+  def getTempByName name
+
+  end
+
   def maxKind(kind)
     num = -1
     if @symbols == nil
@@ -161,16 +165,16 @@ end
 def subroutineDec
   myNode = NonTerminalNode.new('subroutineDec')
 
-  puts '$methodScopeSymbolTable before delete:'
-  $methodScopeSymbolTable.myPrint
 
   #initializing the methodSymbolTable
   $methodScopeSymbolTable.clear
-
+  $localVariablesNum = 0
   #writes the 'constructor'|'function'|'method'
   if extract == 'method'
     $methodScopeSymbolTable.addSymbol 'this', $file_name, 'argument'
+    $localVariablesNum = $localVariablesNum + 1
   end
+  $subroutineKind = extract
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
@@ -183,6 +187,7 @@ def subroutineDec
   $lineNumber = $lineNumber+1
 
   #write subroutineName
+  $subroutineName = extract
   myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
@@ -200,6 +205,9 @@ def subroutineDec
   #writes the subroutineBody
   myNode.addNode subroutineBody
 
+  puts '$methodScopeSymbolTable before delete:'
+  $methodScopeSymbolTable.myPrint
+
   return myNode
 end
 
@@ -210,10 +218,15 @@ def subroutineBody
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
+
   #write varDec*
   while $lines[$lineNumber][$lines[$lineNumber].index('>')+1..$lines[$lineNumber].index('</')-1] == ' var '
     #writes varDec
     myNode.addNode varDec
+  end
+  $vmFile.syswrite "function #{$file_name}.#{$subroutineName} #{$localVariablesNum}\n"
+  if $subroutineKind == 'method'
+    $vmFile.syswrite "push argument 0\npop pointer 0\n"
   end
 
   #write statements
@@ -425,9 +438,13 @@ def returnStatement
   myNode = NonTerminalNode.new('returnStatement')
 
   #writes return
+
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
-
+  if extract == ';'
+    $vmFile.syswrite "push constant 0\n"
+    $vmFile.syswrite "return\n"
+  end
   #writes expression?
   if ($lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)]!=' ; ')
     myNode.addNode expression
@@ -581,6 +598,8 @@ def varDec
   name = extract
   myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
+  $localVariablesNum = $localVariablesNum + 1
+
 
   #adding to $methodScopeSymbolTable
   $methodScopeSymbolTable.addSymbol name, type, kind
@@ -594,7 +613,7 @@ def varDec
     name = extract
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
-
+    $localVariablesNum = $localVariablesNum + 1
     #adding to $methodScopeSymbolTable
     $methodScopeSymbolTable.addSymbol name, type, kind
 
@@ -723,6 +742,7 @@ end
 #---------------Main---------------------
 
 
+
 $keyword = %w(if class constructor function method field static var int char boolean void true false null this let do else while return)
 puts 'Enter directory path: '
 path = gets.strip
@@ -734,7 +754,9 @@ if files.length == 0
   puts 'No files found'
   exit
 end
-
+$localVariablesNum = 0
+$subroutineName = ''
+$subroutineKind = ''
 for i in 0..files.length - 1 do
   $classScopeSymbolTable = SymbolTable.new
   $methodScopeSymbolTable = SymbolTable.new
