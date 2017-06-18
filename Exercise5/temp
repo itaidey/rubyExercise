@@ -565,7 +565,7 @@ def classVarDec(numberOfTabs, lineNumber, lines)
   $file.syswrite('  '*numberOfTabs + "<classVarDec>\n")
 
   #writing the static or field
-  kind = lines[lineNumber][(lines[lineNumber].index('>')+2)..(lines[lineNumber].index(' </')-1)]
+  kind = lines[lineNumber][(lines[lineNumber].index('>')+2)..(lines[lineNumber].index(' </')-1)] 
   lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
 
   #writing the type
