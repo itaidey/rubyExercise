@@ -313,6 +313,8 @@ def expression
     myNode.addNode term
     if op == '+'
       $vmFile.syswrite "add\n"
+    elsif op == '-'
+      $vmFile.syswrite "sub\n"
     end
   end
   return myNode
