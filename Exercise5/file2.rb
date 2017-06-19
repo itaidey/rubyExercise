@@ -468,6 +468,7 @@ def whileStatement subroutineKind
   $lineNumber = $lineNumber+1
 
   $vmFile.syswrite "label WHILE_END#{$whileCounter}\n"
+  $whileCounter = $whileCounter + 1
 
   return myNode
 
