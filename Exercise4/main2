@@ -526,7 +526,7 @@ for i in 0..files.length - 1 do
 
   $file_name=files[i][0..files[i].index('T.xml')-1]
   #puts $file_name
-  $file = File.new("#{$file_name}1.xml", 'w')
+  $file = File.new("#{$file_name}.xml", 'w')
   lines = File.readlines("#{$file_name}T.xml")
   start(0, lines)
   #lines.each do |line|

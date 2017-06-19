@@ -83,7 +83,7 @@ class SymbolTable
     @symbols.push(MySymbol.new(name, type, kind, maxKind(kind) + 1))
   end
 
-  def getTypeByName name
+  def getKindByName name
     for i in 0..(@symbols.length) -1
       if @symbols[i].getName == name
         return @symbols[i].getKind
@@ -111,7 +111,7 @@ class SymbolTable
     return num
   end
 
-  def getNum
+  def getSymbolNum
     return @symbols.length
   end
 
@@ -214,7 +214,7 @@ def subroutineDec
   $lineNumber = $lineNumber+1
 
   #write subroutineName
-  $subroutineName = extract
+  subroutineName = extract
   myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
@@ -230,7 +230,7 @@ def subroutineDec
   $lineNumber = $lineNumber+1
 
   #writes the subroutineBody
-  myNode.addNode subroutineBody subroutineKind
+  myNode.addNode subroutineBody subroutineKind, subroutineName
 
   puts '$methodScopeSymbolTable before delete:'
   $methodScopeSymbolTable.myPrint
@@ -239,7 +239,7 @@ def subroutineDec
 end
 
 
-def subroutineBody subroutineKind
+def subroutineBody subroutineKind ,subroutineName
   myNode = NonTerminalNode.new('subroutineBody')
   #writes '{'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
@@ -251,15 +251,17 @@ def subroutineBody subroutineKind
     #writes varDec
     myNode.addNode varDec
   end
-  $vmFile.syswrite "function #{$file_name}.#{$subroutineName} #{$localVariablesNum}\n"
+  $vmFile.syswrite "function #{$file_name}.#{subroutineName} #{$localVariablesNum}\n"
   if subroutineKind == 'method'
     $vmFile.syswrite "push argument 0\npop pointer 0\n"
   elsif subroutineKind == 'constructor'
-
+      $vmFile.syswrite "push constant #{$classScopeSymbolTable.getNumOfFields}\n"
+      $vmFile.syswrite "call Memory.alloc 1\n"
+      $vmFile.syswrite "pop pointer 0\n"
   end
 
   #write statements
-  myNode.addNode statements
+  myNode.addNode statements subroutineKind
 
   #writes '}'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
@@ -268,7 +270,7 @@ def subroutineBody subroutineKind
   return myNode
 end
 
-def statements
+def statements subroutineKind
   myNode = NonTerminalNode.new('statements')
   temp = $lines[$lineNumber][$lines[$lineNumber].index('>')+1..$lines[$lineNumber].index('</')-1]
   while [' let ', ' if ', ' while ', ' do ', ' return '].include? temp
@@ -287,7 +289,7 @@ def statements
       myNode.addNode doStatement
     elsif temp == ' return '
       #returnStatement
-      myNode.addNode returnStatement
+      myNode.addNode returnStatement subroutineKind
     end
   end
   return myNode
@@ -302,11 +304,16 @@ def expression
   #doing (op term)*
   while [' + ', ' - ', ' * ', ' / ', ' &amp; ', ' | ', ' &lt; ', ' &gt; ', ' = '].include? $lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)]
     #op
+    op = extract
+
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
     #term
     myNode.addNode term
+    if op == '+'
+      $vmFile.syswrite "add\n"
+    end
   end
 
   return myNode
@@ -338,17 +345,18 @@ end
 
 def letStatement
   myNode=NonTerminalNode.new('letStatement')
-
+  arrayFlag =false
   #writes let
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
   #writes varName
+  name = extract
   myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
   if ($lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)]==' [ ')
-
+    arrayFlag = !arrayFlag
     #writes [
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
@@ -368,6 +376,14 @@ def letStatement
   #writes expression
   myNode.addNode expression
 
+  if !arrayFlag
+    if ($methodScopeSymbolTable.getNumberByName name) != -1
+      $vmFile.syswrite "pop #{$methodScopeSymbolTable.getKindByName name} #{$methodScopeSymbolTable.getNumberByName name}\n"
+    else
+      $vmFile.syswrite "pop #{$classScopeSymbolTable.getKindByName name} #{$classScopeSymbolTable.getNumberByName name}\n"
+    end
+
+  end
   #writes ';'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
@@ -462,7 +478,7 @@ def doStatement
 end
 
 
-def returnStatement
+def returnStatement subroutineKind
 
   myNode = NonTerminalNode.new('returnStatement')
 
@@ -474,10 +490,17 @@ def returnStatement
     $vmFile.syswrite "push constant 0\n"
     $vmFile.syswrite "return\n"
   end
+
+  if subroutineKind =='constructor'
+    $vmFile.syswrite "push pointer 0\n"
+  end
+
   #writes expression?
   if ($lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)]!=' ; ')
     myNode.addNode expression
+    $vmFile.syswrite "return\n"
   end
+
 
   #writes ';'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
@@ -486,7 +509,6 @@ def returnStatement
   return myNode
 
 end
-
 
 def term
   myNode = NonTerminalNode.new('term')
@@ -540,13 +562,16 @@ def term
     myNode.addNode subroutineCall myNode
 
   else
+
     #writes integerConstant|stringConstant|keywordConstant|varName
     if $keyword.include? extract
       myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
     elsif $lines[$lineNumber][($lines[$lineNumber].index('>')+2)] == "\""
       myNode.addNode TerminalNode.new('stringConstant', $lines[$lineNumber])
-    elsif extract.is_a? Numeric
+    elsif extract.to_i.to_s == extract
+      number = extract
       myNode.addNode TerminalNode.new('integerConstant', $lines[$lineNumber])
+      $vmFile.syswrite "push constant #{number.to_s}\n"
     else
       myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     end
@@ -604,7 +629,6 @@ def subroutineCall(myNode)
   end
 end
 
-
 def varDec
 
   myNode = NonTerminalNode.new('varDec')
@@ -654,7 +678,6 @@ def varDec
 
   return myNode
 end
-
 
 def parameterList
   kind = 'argument'
@@ -777,20 +800,20 @@ puts 'Enter directory path: '
 path = gets.strip
 Dir.chdir path
 
-files = Dir.glob '*T.xml'
+files = Dir.glob '*T1.xml'
 
 if files.length == 0
   puts 'No files found'
   exit
 end
+
 $localVariablesNum = 0
-$subroutineName = ''
 $subroutineKind = ''
 for i in 0..files.length - 1 do
   $classScopeSymbolTable = SymbolTable.new
   $methodScopeSymbolTable = SymbolTable.new
-  $file_name=files[i][0..files[i].index('T.xml')-1]
-  $xmlFile = File.new("#{$file_name}2.xml", 'w')
+  $file_name=files[i][0..files[i].index('T1.xml')-1]
+  $xmlFile = File.new("#{$file_name}1.xml", 'w')
   $vmFile = File.new("#{$file_name}1.vm", 'w')
   $lines = File.readlines("#{$file_name}T.xml")
   myTree = start
