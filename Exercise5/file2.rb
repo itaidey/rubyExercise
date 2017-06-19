@@ -313,6 +313,8 @@ def expression
     myNode.addNode term
     if op == '+'
       $vmFile.syswrite "add\n"
+    elsif op == '-'
+      $vmFile.syswrite "sub\n"
     end
   end
 
@@ -815,7 +817,7 @@ for i in 0..files.length - 1 do
   $file_name=files[i][0..files[i].index('T1.xml')-1]
   $xmlFile = File.new("#{$file_name}1.xml", 'w')
   $vmFile = File.new("#{$file_name}1.vm", 'w')
-  $lines = File.readlines("#{$file_name}T.xml")
+  $lines = File.readlines("#{$file_name}T1.xml")
   myTree = start
 
   puts "$classScopeSymbolTable #{$file_name}:"
