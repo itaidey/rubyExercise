@@ -103,12 +103,16 @@ class SymbolTable
 
   def getNumOfFields
     num = 0
-    for i in 0..(@symbols.length) -1 
+    for i in 0..(@symbols.length) -1
       if @symbols[i].getKind =='field'
         num = num + 1
       end
     end
     return num
+  end
+
+  def getNum
+    return @symbols.length
   end
 
   def maxKind(kind)
@@ -197,7 +201,7 @@ def subroutineDec
   if extract == 'method'
     $methodScopeSymbolTable.addSymbol 'this', $file_name, 'argument'
   end
-  $subroutineKind = extract
+  subroutineKind = extract
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
@@ -226,7 +230,7 @@ def subroutineDec
   $lineNumber = $lineNumber+1
 
   #writes the subroutineBody
-  myNode.addNode subroutineBody
+  myNode.addNode subroutineBody subroutineKind
 
   puts '$methodScopeSymbolTable before delete:'
   $methodScopeSymbolTable.myPrint
@@ -235,7 +239,7 @@ def subroutineDec
 end
 
 
-def subroutineBody
+def subroutineBody subroutineKind
   myNode = NonTerminalNode.new('subroutineBody')
   #writes '{'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
@@ -248,9 +252,9 @@ def subroutineBody
     myNode.addNode varDec
   end
   $vmFile.syswrite "function #{$file_name}.#{$subroutineName} #{$localVariablesNum}\n"
-  if $subroutineKind == 'method'
+  if subroutineKind == 'method'
     $vmFile.syswrite "push argument 0\npop pointer 0\n"
-  elsif $subroutineKind == 'constructor'
+  elsif subroutineKind == 'constructor'
 
   end
 
