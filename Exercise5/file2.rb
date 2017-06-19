@@ -239,7 +239,7 @@ def subroutineDec
 end
 
 
-def subroutineBody subroutineKind ,subroutineName
+def subroutineBody subroutineKind, subroutineName
   myNode = NonTerminalNode.new('subroutineBody')
   #writes '{'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
@@ -255,9 +255,9 @@ def subroutineBody subroutineKind ,subroutineName
   if subroutineKind == 'method'
     $vmFile.syswrite "push argument 0\npop pointer 0\n"
   elsif subroutineKind == 'constructor'
-      $vmFile.syswrite "push constant #{$classScopeSymbolTable.getNumOfFields}\n"
-      $vmFile.syswrite "call Memory.alloc 1\n"
-      $vmFile.syswrite "pop pointer 0\n"
+    $vmFile.syswrite "push constant #{$classScopeSymbolTable.getNumOfFields}\n"
+    $vmFile.syswrite "call Memory.alloc 1\n"
+    $vmFile.syswrite "pop pointer 0\n"
   end
 
   #write statements
@@ -315,7 +315,6 @@ def expression
       $vmFile.syswrite "add\n"
     end
   end
-
   return myNode
 end
 
@@ -529,13 +528,19 @@ def term
 
     #doing unaryOp term
   elsif ([' ~ ', ' - '].include? $lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)])
-
     #writes unaryOp
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
+    action = extract
     $lineNumber = $lineNumber+1
 
     #term
     myNode.addNode term
+
+    if action == '-'
+      $vmFile.syswrite "neg\n"
+    elsif action == '~'
+      $vmFile.syswrite "not\n"
+    end
 
     #doing varName '[' expression ']', there is look ahead
   elsif ($lines[$lineNumber+1][($lines[$lineNumber + 1].index('>')+1)..($lines[$lineNumber+1].index('</')-1)]==' [ ')
@@ -794,7 +799,6 @@ end
 #---------------Main---------------------
 
 
-
 $keyword = %w(if class constructor function method field static var int char boolean void true false null this let do else while return)
 puts 'Enter directory path: '
 path = gets.strip
@@ -815,7 +819,7 @@ for i in 0..files.length - 1 do
   $file_name=files[i][0..files[i].index('T1.xml')-1]
   $xmlFile = File.new("#{$file_name}1.xml", 'w')
   $vmFile = File.new("#{$file_name}1.vm", 'w')
-  $lines = File.readlines("#{$file_name}T.xml")
+  $lines = File.readlines("#{$file_name}T1.xml")
   myTree = start
 
   puts "$classScopeSymbolTable #{$file_name}:"
