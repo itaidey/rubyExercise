@@ -280,10 +280,10 @@ def statements subroutineKind
       myNode.addNode letStatement
     elsif temp == ' if '
       #ifStatement
-      myNode.addNode ifStatement
+      myNode.addNode ifStatement subroutineKind
     elsif temp == ' while '
       #whileStatement
-      myNode.addNode whileStatement
+      myNode.addNode whileStatement subroutineKind
     elsif temp == ' do '
       #doStatement
       myNode.addNode doStatement
@@ -315,6 +315,12 @@ def expression
       $vmFile.syswrite "add\n"
     elsif op == '-'
       $vmFile.syswrite "sub\n"
+    elsif op == '&lt;'
+      $vmFile.syswrite "lt\n"
+    elsif op =='&gt;'
+      $vmFile.syswrite "gt\n"
+    elsif op =='='
+      $vmFile.syswrite "eq\n"
     end
   end
   return myNode
@@ -383,7 +389,6 @@ def letStatement
     else
       $vmFile.syswrite "pop #{$classScopeSymbolTable.getKindByName name} #{$classScopeSymbolTable.getNumberByName name}\n"
     end
-
   end
   #writes ';'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
@@ -392,7 +397,7 @@ def letStatement
   return myNode
 end
 
-def ifStatement
+def ifStatement subroutineKind
   myNode=NonTerminalNode.new('ifStatement')
 
   #writes if
@@ -410,7 +415,7 @@ def ifStatement
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
   #writes statements
-  myNode.addNode statements
+  myNode.addNode statements subroutineKind
   #writes '}'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
@@ -424,7 +429,7 @@ def ifStatement
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
     #writes statements
-    myNode.addNode statements
+    myNode.addNode statements subroutineKind
     #writes '}'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
@@ -432,10 +437,12 @@ def ifStatement
   return myNode
 end
 
-def whileStatement
+def whileStatement subroutineKind
   myNode = NonTerminalNode.new('whileStatement')
 
   #writes while
+  $vmFile.syswrite "label WHILE_EXP#{$whileCounter}\n"
+
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
   #writes '('
@@ -444,16 +451,23 @@ def whileStatement
   #writes expression
   myNode.addNode expression
   #writes ')'
+
+  $vmFile.syswrite "not\n"
+  $vmFile.syswrite "if-goto WHILE_END#{$whileCounter}\n"
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
   #writes '{'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
   #writes statement
-  myNode.addNode statements
+  myNode.addNode statements subroutineKind
   #writes '}'
+
+  $vmFile.syswrite "goto WHILE_EXP#{$whileCounter}\n"
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
+
+  $vmFile.syswrite "label WHILE_END#{$whileCounter}\n"
 
   return myNode
 
@@ -573,14 +587,29 @@ def term
     #writes integerConstant|stringConstant|keywordConstant|varName
     if $keyword.include? extract
       myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
-    elsif $lines[$lineNumber][($lines[$lineNumber].index('>')+2)] == "\""
+    elsif $lines[$lineNumber][($lines[$lineNumber].index('<')+1)..($lines[$lineNumber].index('>')-1)] == 'stringConstant'
       myNode.addNode TerminalNode.new('stringConstant', $lines[$lineNumber])
+      const = extract
+      $vmFile.syswrite "push constant #{const.length}\n"
+      $vmFile.syswrite "call String.new 1\n"
+      for i in 0..(const.length) -1
+        $vmFile.syswrite "push constant #{const[i].ord}\n"
+        $vmFile.syswrite "call String.appendChar 2\n"
+      end
     elsif extract.to_i.to_s == extract
       number = extract
       myNode.addNode TerminalNode.new('integerConstant', $lines[$lineNumber])
       $vmFile.syswrite "push constant #{number.to_s}\n"
     else
       myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
+      #writes the push kind number
+      name = extract
+      if ($methodScopeSymbolTable.getNumberByName name) != -1
+        $vmFile.syswrite "push #{$methodScopeSymbolTable.getKindByName name} #{$methodScopeSymbolTable.getNumberByName name}\n"
+      else
+        $vmFile.syswrite "push #{$classScopeSymbolTable.getKindByName name} #{$classScopeSymbolTable.getNumberByName name}\n"
+      end
+
     end
     $lineNumber = $lineNumber+1
   end
@@ -815,6 +844,8 @@ end
 
 $localVariablesNum = 0
 $subroutineKind = ''
+$whileCounter = 0
+$ifCounter = 0
 for i in 0..files.length - 1 do
   $classScopeSymbolTable = SymbolTable.new
   $methodScopeSymbolTable = SymbolTable.new
