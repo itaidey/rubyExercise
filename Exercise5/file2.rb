@@ -103,7 +103,7 @@ class SymbolTable
 
   def getNumOfFields
     num = 0
-    for i in 0..(@symbols.length) -1
+    for i in 0..(@symbols.length) -1 
       if @symbols[i].getKind =='field'
         num = num + 1
       end
