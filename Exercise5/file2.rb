@@ -83,8 +83,32 @@ class SymbolTable
     @symbols.push(MySymbol.new(name, type, kind, maxKind(kind) + 1))
   end
 
-  def getTempByName name
+  def getTypeByName name
+    for i in 0..(@symbols.length) -1
+      if @symbols[i].getName == name
+        return @symbols[i].getKind
+      end
+    end
+    return nil
+  end
 
+  def getNumberByName name
+    for i in 0..(@symbols.length) -1
+      if @symbols[i].getName == name
+        return @symbols[i].getNumber
+      end
+    end
+    return -1
+  end
+
+  def getNumOfFields
+    num = 0
+    for i in 0..(@symbols.length) -1
+      if @symbols[i].getKind =='field'
+        num = num + 1
+      end
+    end
+    return num
   end
 
   def maxKind(kind)
@@ -172,7 +196,6 @@ def subroutineDec
   #writes the 'constructor'|'function'|'method'
   if extract == 'method'
     $methodScopeSymbolTable.addSymbol 'this', $file_name, 'argument'
-    $localVariablesNum = $localVariablesNum + 1
   end
   $subroutineKind = extract
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
@@ -227,6 +250,8 @@ def subroutineBody
   $vmFile.syswrite "function #{$file_name}.#{$subroutineName} #{$localVariablesNum}\n"
   if $subroutineKind == 'method'
     $vmFile.syswrite "push argument 0\npop pointer 0\n"
+  elsif $subroutineKind == 'constructor'
+
   end
 
   #write statements
