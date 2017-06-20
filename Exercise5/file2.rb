@@ -334,6 +334,8 @@ def expression
       $vmFile.syswrite "lt\n"
     elsif op =='&gt;'
       $vmFile.syswrite "gt\n"
+    elsif op =='&amp;'
+      $vmFile.syswrite "and\n"
     elsif op =='='
       $vmFile.syswrite "eq\n"
     elsif op =='*'
@@ -429,6 +431,8 @@ def letStatement
 end
 
 def ifStatement subroutineKind
+  ifNumber =$ifCounter
+  $ifCounter = $ifCounter + 1
   myNode=NonTerminalNode.new('ifStatement')
   haveElse =false
   #writes if
@@ -440,9 +444,9 @@ def ifStatement subroutineKind
   #writes expression
   myNode.addNode expression
   #writes ')'
-  $vmFile.syswrite "if-goto IF_TRUE#{$ifCounter}\n"
-  $vmFile.syswrite "goto IF_FALSE#{$ifCounter}\n"
-  $vmFile.syswrite "label IF_TRUE#{$ifCounter}\n"
+  $vmFile.syswrite "if-goto IF_TRUE#{ifNumber}\n"
+  $vmFile.syswrite "goto IF_FALSE#{ifNumber}\n"
+  $vmFile.syswrite "label IF_TRUE#{ifNumber}\n"
 
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
@@ -456,8 +460,8 @@ def ifStatement subroutineKind
   $lineNumber = $lineNumber+1
 
   if ($lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)]==' else ')
-    $vmFile.syswrite "goto IF_END#{$ifCounter}\n"
-    $vmFile.syswrite "label IF_FALSE#{$ifCounter}\n"
+    $vmFile.syswrite "goto IF_END#{ifNumber}\n"
+    $vmFile.syswrite "label IF_FALSE#{ifNumber}\n"
     #writes else
     myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
@@ -469,20 +473,20 @@ def ifStatement subroutineKind
     #writes '}'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
-    $vmFile.syswrite "label IF_END#{$ifCounter}\n"
+    $vmFile.syswrite "label IF_END#{ifNumber}\n"
 
   else
-    $vmFile.syswrite "label IF_FALSE#{$ifCounter}\n"
+    $vmFile.syswrite "label IF_FALSE#{ifNumber}\n"
   end
-  $ifCounter = $ifCounter + 1
   return myNode
 end
 
 def whileStatement subroutineKind
   myNode = NonTerminalNode.new('whileStatement')
-
+  whileNum = $whileCounter
+  $whileCounter = $whileCounter + 1
   #writes while
-  $vmFile.syswrite "label WHILE_EXP#{$whileCounter}\n"
+  $vmFile.syswrite "label WHILE_EXP#{whileNum}\n"
 
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
@@ -494,7 +498,7 @@ def whileStatement subroutineKind
   #writes ')'
 
   $vmFile.syswrite "not\n"
-  $vmFile.syswrite "if-goto WHILE_END#{$whileCounter}\n"
+  $vmFile.syswrite "if-goto WHILE_END#{whileNum}\n"
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
   #writes '{'
@@ -504,12 +508,11 @@ def whileStatement subroutineKind
   myNode.addNode statements subroutineKind
   #writes '}'
 
-  $vmFile.syswrite "goto WHILE_EXP#{$whileCounter}\n"
+  $vmFile.syswrite "goto WHILE_EXP#{whileNum}\n"
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
 
-  $vmFile.syswrite "label WHILE_END#{$whileCounter}\n"
-  $whileCounter = $whileCounter + 1
+  $vmFile.syswrite "label WHILE_END#{whileNum}\n"
 
   return myNode
 
@@ -639,6 +642,11 @@ def term
     #writes integerConstant|stringConstant|keywordConstant|varName
     if $keyword.include? extract
       if extract == 'null'
+        $vmFile.syswrite "push constant 0\n"
+      elsif extract =='true'
+        $vmFile.syswrite "push constant 0\n"
+        $vmFile.syswrite "not\n"
+      elsif extract =='false'
         $vmFile.syswrite "push constant 0\n"
       end
       myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
