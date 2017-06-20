@@ -318,6 +318,7 @@ def expression
     #op
     op = extract
 
+
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
@@ -637,6 +638,9 @@ def term
 
     #writes integerConstant|stringConstant|keywordConstant|varName
     if $keyword.include? extract
+      if extract == 'null'
+        $vmFile.syswrite "push constant 0\n"
+      end
       myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
     elsif $lines[$lineNumber][($lines[$lineNumber].index('<')+1)..($lines[$lineNumber].index('>')-1)] == 'stringConstant'
       myNode.addNode TerminalNode.new('stringConstant', $lines[$lineNumber])
