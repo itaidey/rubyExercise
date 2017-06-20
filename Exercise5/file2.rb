@@ -141,6 +141,14 @@ class SymbolTable
     end
     puts
   end
+  def getTypeByName name
+    for i in 0..(@symbols.length) -1
+      if @symbols[i].getName == name
+        return @symbols[i].getType
+      end
+    end
+    return nil
+  end
 end
 
 def getVmKindBySymbolKind kind
@@ -355,7 +363,7 @@ def expressionList
     #write expression
     myNode.addNode expression
 
-    #doing (op term)*
+    #doing (, expression)*
     while $lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)] == ' , '
 
       #writes ,
@@ -706,15 +714,18 @@ def subroutineCall(myNode)
 
     #writes className|varName
     name = extract
+    varName = name
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
     #writes '.'
+    funcPart ='.'
     name += '.'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
     #writes subroutineName
+    funcPart +=extract
     name+=extract
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
@@ -723,15 +734,31 @@ def subroutineCall(myNode)
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
+    #check if calling method
+    if ($classScopeSymbolTable.getNumberByName varName) != -1 || ($methodScopeSymbolTable.getNumberByName varName) != -1
+      if ($methodScopeSymbolTable.getNumberByName varName) != -1
+        $vmFile.syswrite "push #{getVmKindBySymbolKind($methodScopeSymbolTable.getKindByName varName)} #{$methodScopeSymbolTable.getNumberByName varName}\n"
+      else
+        $vmFile.syswrite "push #{getVmKindBySymbolKind($classScopeSymbolTable.getKindByName varName)} #{$classScopeSymbolTable.getNumberByName varName}\n"
+      end
+    end
     #writes expressionList
     myNode.addNode expressionList
 
     #writes ')'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
+
   end
-  ##need to do something that counts the arguments------------------------------------
-  $vmFile.syswrite "call #{name} #{$argNumber}\n"
+  if ($classScopeSymbolTable.getNumberByName varName) == -1 && ($methodScopeSymbolTable.getNumberByName varName) == -1
+    $vmFile.syswrite "call #{name} #{$argNumber}\n"
+  else
+    if ($methodScopeSymbolTable.getNumberByName varName) != -1
+      $vmFile.syswrite "call #{($methodScopeSymbolTable.getTypeByName varName).to_s + funcPart} #{$argNumber + 1}\n"
+    else
+      $vmFile.syswrite "call #{($classScopeSymbolTable.getTypeByName varName).to_s + funcPart} #{$argNumber + 1}\n"
+    end
+  end
 end
 
 def varDec
@@ -911,13 +938,15 @@ if files.length == 0
   exit
 end
 
-$localVariablesNum = 0
-$argNumber = 0
-$whileCounter = 0
-$ifCounter = 0
+
 for i in 0..files.length - 1 do
   $classScopeSymbolTable = SymbolTable.new
   $methodScopeSymbolTable = SymbolTable.new
+  $localVariablesNum = 0
+  $argNumber = 0
+  $whileCounter = 0
+  $ifCounter = 0
+
   $file_name=files[i][0..files[i].index('T1.xml')-1]
   $xmlFile = File.new("#{$file_name}1.xml", 'w')
   $vmFile = File.new("#{$file_name}1.vm", 'w')
