@@ -36,7 +36,7 @@ def splitLine(line)
   i = 0
 
   #stops =%w| $ { } ( ) [ ] ; + - * / & < > = ~ |
-  stops = '|{}()[].,;+-*/&<>=~'
+  stops = "|{}()[].,;+-*/&<>=~\n"
 
   result = ''
   while (i < line.length)
@@ -71,9 +71,8 @@ def splitBySpace(line)
     elsif (line[i]!=' ' || inQuotes) && line[i]!="\t"
       temp += line[i]
       i = i + 1
-
     else
-      if (temp !='' && temp!="\t")
+      if (temp !='' && temp!="\t" && temp!= "\n")
         arr[arr.length] = temp
         temp = ''
       end

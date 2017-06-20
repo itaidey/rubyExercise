@@ -3,8 +3,9 @@ path = gets.strip
 Dir.chdir path
 
 def analyzeLine (line)
+  puts splitBySpace(splitLine(line))
   arr = splitBySpace (splitLine(line))
-  keyword = %w(if class constructor function method field static var int char boolean void true false null this let do else while return)
+  keyword = %w(if else class constructor function method field static var int char boolean void true false null this let do while return)
   symbol = %w_| { } ( ) [ ] . , ; + - * / & < > = ~_
   arr.each do |terminal|
     if keyword.include? terminal
@@ -36,7 +37,7 @@ def splitLine(line)
   i = 0
 
   #stops =%w| $ { } ( ) [ ] ; + - * / & < > = ~ |
-  stops = '|{}()[].,;+-*/&<>=~'
+  stops = "|{}()[].,;+-*/&<>=~\n"
 
   result = ''
   while (i < line.length)
@@ -73,7 +74,7 @@ def splitBySpace(line)
       i = i + 1
 
     else
-      if (temp !='' && temp!="\t")
+      if (temp !='' && temp!="\t" && temp!="\n")
         arr[arr.length] = temp
         temp = ''
       end
@@ -146,7 +147,7 @@ for i in 0..files.length - 1 do
   $file.syswrite "<tokens>\n"
   lines = File.readlines($file_name)
   lines = removeComments lines
-  puts lines
+  #puts lines
   lines.each do |line|
     analyzeLine(line)
   end

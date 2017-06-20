@@ -254,6 +254,7 @@ def ifStatement numberOfTabs, lineNumber, lines
   if (lines[lineNumber][(lines[lineNumber].index('>')+1)..(lines[lineNumber].index('</')-1)]==' else ')
 
     #writes else
+    puts lines[lineNumber]
     lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines
     #writes '{'
     lineNumber = writeSingleLine numberOfTabs+1, lineNumber, lines

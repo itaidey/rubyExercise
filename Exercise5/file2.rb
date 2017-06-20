@@ -23,6 +23,7 @@ class NonTerminalNode < Node
   end
 end
 
+
 class TerminalNode < Node
   def initialize (type, text)
     @type=type
@@ -142,6 +143,17 @@ class SymbolTable
   end
 end
 
+def getVmKindBySymbolKind kind
+  if kind =='var'
+    return 'local'
+  elsif kind =='argument'
+    return 'argument'
+  elsif kind =='static'
+    return 'static'
+  elsif kind == 'field'
+    return 'this'
+  end
+end
 =begin
 def writeSingleLine
   $file.syswrite('  '*(numberOfTabs) +"#{$lines[$lineNumber]}")
@@ -315,6 +327,8 @@ def expression
       $vmFile.syswrite "add\n"
     elsif op == '-'
       $vmFile.syswrite "sub\n"
+    elsif op == '/'
+      $vmFile.syswrite "call Math.divide 2\n"
     elsif op == '&lt;'
       $vmFile.syswrite "lt\n"
     elsif op =='&gt;'
@@ -329,8 +343,10 @@ end
 def expressionList
   myNode = NonTerminalNode.new('expressionList')
 
+  $argNumber = 0
   if $lines[$lineNumber][$lines[$lineNumber].index('>')+1..$lines[$lineNumber].index('</')-1]!=' ) '
 
+    $argNumber += 1;
     #write expression
     myNode.addNode expression
 
@@ -341,6 +357,7 @@ def expressionList
       myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
       $lineNumber = $lineNumber+1
 
+      $argNumber += 1;
       #expression
       myNode.addNode expression
 
@@ -374,6 +391,12 @@ def letStatement
     #writes ]
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
+    if ($methodScopeSymbolTable.getNumberByName name) != -1
+      $vmFile.syswrite "push #{getVmKindBySymbolKind ($methodScopeSymbolTable.getKindByName name)} #{$methodScopeSymbolTable.getNumberByName name}\n"
+    else
+      $vmFile.syswrite "push #{getVmKindBySymbolKind ($classScopeSymbolTable.getKindByName name)} #{$classScopeSymbolTable.getNumberByName name}\n"
+    end
+    $vmFile.syswrite"add\n"
   end
 
   #writes '='
@@ -385,10 +408,15 @@ def letStatement
 
   if !arrayFlag
     if ($methodScopeSymbolTable.getNumberByName name) != -1
-      $vmFile.syswrite "pop #{$methodScopeSymbolTable.getKindByName name} #{$methodScopeSymbolTable.getNumberByName name}\n"
+      $vmFile.syswrite "pop #{getVmKindBySymbolKind ($methodScopeSymbolTable.getKindByName name)} #{$methodScopeSymbolTable.getNumberByName name}\n"
     else
-      $vmFile.syswrite "pop #{$classScopeSymbolTable.getKindByName name} #{$classScopeSymbolTable.getNumberByName name}\n"
+      $vmFile.syswrite "pop #{getVmKindBySymbolKind ($classScopeSymbolTable.getKindByName name)} #{$classScopeSymbolTable.getNumberByName name}\n"
     end
+  else
+    $vmFile.syswrite"pop temp 0\n"
+    $vmFile.syswrite"pop pointer 1\n"
+    $vmFile.syswrite"push temp 0\n"
+    $vmFile.syswrite"pop that #{0}\n"
   end
   #writes ';'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
@@ -399,7 +427,7 @@ end
 
 def ifStatement subroutineKind
   myNode=NonTerminalNode.new('ifStatement')
-
+  haveElse =false
   #writes if
   myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
@@ -409,6 +437,10 @@ def ifStatement subroutineKind
   #writes expression
   myNode.addNode expression
   #writes ')'
+  $vmFile.syswrite "if-goto IF_TRUE#{$ifCounter}\n"
+  $vmFile.syswrite "goto IF_FALSE#{$ifCounter}\n"
+  $vmFile.syswrite "label IF_TRUE#{$ifCounter}\n"
+
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
   #writes '{'
@@ -421,7 +453,8 @@ def ifStatement subroutineKind
   $lineNumber = $lineNumber+1
 
   if ($lines[$lineNumber][($lines[$lineNumber].index('>')+1)..($lines[$lineNumber].index('</')-1)]==' else ')
-
+    $vmFile.syswrite "goto IF_END#{$ifCounter}\n"
+    $vmFile.syswrite "label IF_FALSE#{$ifCounter}\n"
     #writes else
     myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
@@ -433,7 +466,12 @@ def ifStatement subroutineKind
     #writes '}'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
+    $vmFile.syswrite "label IF_END#{$ifCounter}\n"
+
+  else
+    $vmFile.syswrite "label IF_FALSE#{$ifCounter}\n"
   end
+  $ifCounter = $ifCounter + 1
   return myNode
 end
 
@@ -488,6 +526,7 @@ def doStatement
   #writes ';'
   myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
   $lineNumber = $lineNumber+1
+  $vmFile.syswrite "pop temp 0\n"
 
   return myNode
 
@@ -563,6 +602,7 @@ def term
   elsif ($lines[$lineNumber+1][($lines[$lineNumber + 1].index('>')+1)..($lines[$lineNumber+1].index('</')-1)]==' [ ')
 
     #writes varName
+    name = extract
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
@@ -576,6 +616,14 @@ def term
     #writes ']'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
+    if ($methodScopeSymbolTable.getNumberByName name) != -1
+      $vmFile.syswrite "push #{getVmKindBySymbolKind ($methodScopeSymbolTable.getKindByName name)} #{$methodScopeSymbolTable.getNumberByName name}\n"
+    else
+      $vmFile.syswrite "push #{getVmKindBySymbolKind ($classScopeSymbolTable.getKindByName name)} #{$classScopeSymbolTable.getNumberByName name}\n"
+    end
+    $vmFile.syswrite "add\n"
+    $vmFile.syswrite "pop pointer #{1}\n"
+    $vmFile.syswrite "push that #{0}\n"
 
     #doing subroutineCall
   elsif ([' ( ', ' . '].include? $lines[$lineNumber+1][($lines[$lineNumber + 1].index('>')+1)..($lines[$lineNumber+1].index('</')-1)])
@@ -606,9 +654,9 @@ def term
       #writes the push kind number
       name = extract
       if ($methodScopeSymbolTable.getNumberByName name) != -1
-        $vmFile.syswrite "push #{$methodScopeSymbolTable.getKindByName name} #{$methodScopeSymbolTable.getNumberByName name}\n"
+        $vmFile.syswrite "push #{getVmKindBySymbolKind ($methodScopeSymbolTable.getKindByName name)} #{$methodScopeSymbolTable.getNumberByName name}\n"
       else
-        $vmFile.syswrite "push #{$classScopeSymbolTable.getKindByName name} #{$classScopeSymbolTable.getNumberByName name}\n"
+        $vmFile.syswrite "push #{getVmKindBySymbolKind ($classScopeSymbolTable.getKindByName name)} #{$classScopeSymbolTable.getNumberByName name}\n"
       end
 
     end
@@ -625,6 +673,7 @@ def subroutineCall(myNode)
   end
   if $lines[$lineNumber+1][($lines[$lineNumber + 1].index('>')+1)..($lines[$lineNumber+1].index('</')-1)]==' ( '
     #writes subroutineName
+    name = extract
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
@@ -642,14 +691,17 @@ def subroutineCall(myNode)
   elsif $lines[$lineNumber+1][($lines[$lineNumber + 1].index('>')+1)..($lines[$lineNumber+1].index('</')-1)] == ' . '
 
     #writes className|varName
+    name = extract
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
     #writes '.'
+    name += '.'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
     #writes subroutineName
+    name+=extract
     myNode.addNode TerminalNode.new('identifier', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
 
@@ -664,6 +716,8 @@ def subroutineCall(myNode)
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
   end
+  ##need to do something that counts the arguments------------------------------------
+  $vmFile.syswrite "call #{name} #{$argNumber}\n"
 end
 
 def varDec
@@ -844,7 +898,7 @@ if files.length == 0
 end
 
 $localVariablesNum = 0
-$subroutineKind = ''
+$argNumber = 0
 $whileCounter = 0
 $ifCounter = 0
 for i in 0..files.length - 1 do
