@@ -37,16 +37,26 @@ def splitLine(line)
 
   #stops =%w| $ { } ( ) [ ] ; + - * / & < > = ~ |
   stops = "|{}()[].,;+-*/&<>=~\n"
-
+  inQuotes = false
   result = ''
   while (i < line.length)
-    if (stops.include?(line[i]))
+    if inQuotes
+      result += line[i]
+      if line[i] == "\""
+        inQuotes = !inQuotes
+      end
+      i = i + 1
+
+    elsif (stops.include?(line[i]) && !inQuotes)
       result+=' '
       result += line[i]
       i = i + 1
       result += ' '
       next
     else
+      if line[i] == "\""
+        inQuotes = !inQuotes
+      end
       result += line[i]
       i = i + 1
     end

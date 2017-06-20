@@ -335,6 +335,8 @@ def expression
       $vmFile.syswrite "gt\n"
     elsif op =='='
       $vmFile.syswrite "eq\n"
+    elsif op =='*'
+      $vmFile.syswrite "call Math.multiply 2\n"
     end
   end
   return myNode
