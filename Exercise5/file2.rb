@@ -932,7 +932,7 @@ puts 'Enter directory path: '
 path = gets.strip
 Dir.chdir path
 
-files = Dir.glob '*T1.xml'
+files = Dir.glob '*T.xml'
 
 if files.length == 0
   puts 'No files found'
@@ -948,10 +948,10 @@ for i in 0..files.length - 1 do
   $whileCounter = 0
   $ifCounter = 0
 
-  $file_name=files[i][0..files[i].index('T1.xml')-1]
-  $xmlFile = File.new("#{$file_name}1.xml", 'w')
-  $vmFile = File.new("#{$file_name}1.vm", 'w')
-  $lines = File.readlines("#{$file_name}T1.xml")
+  $file_name=files[i][0..files[i].index('T.xml')-1]
+  $xmlFile = File.new("#{$file_name}.xml", 'w')
+  $vmFile = File.new("#{$file_name}.vm", 'w')
+  $lines = File.readlines("#{$file_name}T.xml")
   myTree = start
 
   puts "$classScopeSymbolTable #{$file_name}:"
