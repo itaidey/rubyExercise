@@ -656,6 +656,8 @@ def term
         $vmFile.syswrite "not\n"
       elsif extract =='false'
         $vmFile.syswrite "push constant 0\n"
+      elsif extract =='this'
+        $vmFile.syswrite "push pointer 0\n"
       end
       myNode.addNode TerminalNode.new('keyword', $lines[$lineNumber])
     elsif $lines[$lineNumber][($lines[$lineNumber].index('<')+1)..($lines[$lineNumber].index('>')-1)] == 'stringConstant'
