@@ -346,6 +346,8 @@ def expression
       $vmFile.syswrite "and\n"
     elsif op =='='
       $vmFile.syswrite "eq\n"
+    elsif op =='|'
+      $vmFile.syswrite "or\n"
     elsif op =='*'
       $vmFile.syswrite "call Math.multiply 2\n"
     end
@@ -558,10 +560,6 @@ def returnStatement subroutineKind
   if extract == ';'
     $vmFile.syswrite "push constant 0\n"
     $vmFile.syswrite "return\n"
-  end
-
-  if subroutineKind =='constructor'
-    $vmFile.syswrite "push pointer 0\n"
   end
 
   #writes expression?
