@@ -702,13 +702,14 @@ def subroutineCall(myNode)
     #writes ' ( '
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
-
+    $vmFile.syswrite "push pointer 0\n"
     #writes expressionList
     myNode.addNode expressionList
 
     #writes ')'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
+    $vmFile.syswrite "call #{$file_name}.#{name} #{$argNumber + 1}\n"
 
   elsif $lines[$lineNumber+1][($lines[$lineNumber + 1].index('>')+1)..($lines[$lineNumber+1].index('</')-1)] == ' . '
 
@@ -748,17 +749,17 @@ def subroutineCall(myNode)
     #writes ')'
     myNode.addNode TerminalNode.new('symbol', $lines[$lineNumber])
     $lineNumber = $lineNumber+1
-
-  end
-  if ($classScopeSymbolTable.getNumberByName varName) == -1 && ($methodScopeSymbolTable.getNumberByName varName) == -1
-    $vmFile.syswrite "call #{name} #{$argNumber}\n"
-  else
-    if ($methodScopeSymbolTable.getNumberByName varName) != -1
-      $vmFile.syswrite "call #{($methodScopeSymbolTable.getTypeByName varName).to_s + funcPart} #{$argNumber + 1}\n"
+    if ($classScopeSymbolTable.getNumberByName varName) == -1 && ($methodScopeSymbolTable.getNumberByName varName) == -1
+      $vmFile.syswrite "call #{name} #{$argNumber}\n"
     else
-      $vmFile.syswrite "call #{($classScopeSymbolTable.getTypeByName varName).to_s + funcPart} #{$argNumber + 1}\n"
+      if ($methodScopeSymbolTable.getNumberByName varName) != -1
+        $vmFile.syswrite "call #{($methodScopeSymbolTable.getTypeByName varName).to_s + funcPart} #{$argNumber + 1}\n"
+      else
+        $vmFile.syswrite "call #{($classScopeSymbolTable.getTypeByName varName).to_s + funcPart} #{$argNumber + 1}\n"
+      end
     end
   end
+
 end
 
 def varDec
