@@ -147,8 +147,15 @@ def removeComments (lines)
   return arr
 end
 
-
+def delete_xml
+  files = Dir.glob '*.xml'
+  for i in 0..(files.length - 1) do
+    file_name=files[i]
+    File.delete "#{file_name}"
+  end
+end
 files = Dir.glob '*.jack'
+delete_xml
 for i in 0..files.length - 1 do
   $file_name=files[i]
   $file = File.new("#{$file_name.split('.')[0]}T.xml", 'w')

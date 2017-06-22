@@ -923,7 +923,13 @@ def printNode(node)
   end
 end
 
-
+def delete_xml
+  files = Dir.glob '*.xml'
+  for i in 0..(files.length - 1) do
+    file_name=files[i]
+    File.delete "#{file_name}"
+  end
+end
 #---------------Main---------------------
 
 
@@ -956,6 +962,7 @@ for i in 0..files.length - 1 do
 
   puts "$classScopeSymbolTable #{$file_name}:"
   $classScopeSymbolTable.myPrint
-
   printXML myTree, 0
+  $xmlFile.close
 end
+delete_xml
